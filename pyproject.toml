@@ -73,4 +73,4 @@ packages = [
 ]
 
 [project.scripts]
-sotsog = "skg.sotsog:main"
+slidewalker = "slides.slidewalker:main"

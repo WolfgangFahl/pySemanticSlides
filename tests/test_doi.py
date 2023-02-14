@@ -17,7 +17,7 @@ class TestDOI(Basetest):
         """
         debug=self.debug
         # uncomment to force debug mode
-        debug=True
+        #debug=True
         doi_str="10.1145/361598.361623"
         doi=DOI(doi=doi_str,debug=debug)
         meta_json=doi.fetchCiteprocMeta()
