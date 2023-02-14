@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>pySemanticSlides</name>
+	<comment></comment>
+	<projects>
+		<project>PyGenericSpreadSheet</project>
+		<project>pyLoDStorage</project>
+		<project>py-yprinciple-gen</project>
+	</projects>
+	<buildSpec>
+	</buildSpec>
+	<natures>
+		<nature>org.python.pydev.pythonNature</nature>
+	</natures>
+</projectDescription>
