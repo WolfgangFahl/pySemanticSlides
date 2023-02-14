@@ -1,7 +1,7 @@
 # pySemanticSlides
-semantification or slides presentations
+semantification of slides presentations
 
-[![Join the discussion at https://github.com/WolfgangFahl/pySemanticSlides/discussions](https://badges.gitter.im/pySemanticSlides/community.svg)](https://github.com/WolfgangFahl/pySemanticSlides/discussions)
+[![Join the discussion at https://github.com/WolfgangFahl/pySemanticSlides/discussions](https://img.shields.io/github/discussions/WolfgangFahl/pySemanticSlides)](https://github.com/WolfgangFahl/pySemanticSlides/discussions)
 [![pypi](https://img.shields.io/pypi/pyversions/pySemanticSlides)](https://pypi.org/project/pySemanticSlides/)
 [![Github Actions Build](https://github.com/WolfgangFahl/pySemanticSlides/workflows/Build/badge.svg?branch=main)](https://github.com/WolfgangFahl/pySemanticSlides/actions?query=workflow%3ABuild+branch%3Amain)
 [![PyPI Status](https://img.shields.io/pypi/v/pySemanticSlides.svg)](https://pypi.python.org/pypi/pySemanticSlides/)
