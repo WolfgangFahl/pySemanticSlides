@@ -110,7 +110,7 @@ class Slide(object):
         return text
     
     
-    def getNotes(self,yRange=None)->str:
+    def getNotes(self,yRange=None,useShapes:bool=False)->str:
         """
         get the notes
         
@@ -119,12 +119,11 @@ class Slide(object):
         """
         text=""
         if self.slide.has_notes_slide:
-            text=self.slide.notes_slide.notes_text_frame.text
-            #text=self.getText4Shapes(self.slide.notes_slide.shapes,yRange,runDelim=self.runDelim)
-            #if notes_slide.notes_text_frame:
-            #    text = notes_slide.notes_text_frame.text
-            #else:
-            #text=self.getText4Shapes(notes_slide.shapes,yRange,runDelim=self.runDelim)
+            notes_slide=self.slide.notes_slide
+            if useShapes:
+                text=self.getText4Shapes(notes_slide.shapes,yRange,runDelim=self.runDelim)
+            elif notes_slide.notes_text_frame:
+                text=notes_slide.notes_text_frame.text
         return text
     
     def getLayoutName(self)->str:
