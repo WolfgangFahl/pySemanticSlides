@@ -87,13 +87,20 @@ class TestKeyValueParser(Basetest):
         for parserClass in [
             KeyValueSplitParser,
             SimpleKeyValueParser,
-            #KeyValueParser
+            # causes too many errors - see comment to
+            # https://stackoverflow.com/a/75270267/1497139
+            # uncomment to try out and fix 
+            # KeyValueParser
         ]:
             for config in self.yieldConfigs(debug):
                 parser=parserClass(config=config)
                 yield parser
                 
     def yieldTestParams(self,debug:bool=False):
+        """
+        generate a loop over combinations of delimiters
+        as ParserConfigurations
+        """
         for parser in self.yieldConfiguredParsers(debug):
             s=parser.config.key_value_delim
             r=parser.config.record_delim
@@ -180,7 +187,7 @@ class TestKeyValueParser(Basetest):
         tests the keyword extraction
         """
         debug=self.debug
-        debug=False
+        #debug=True
         keydefs=[
             Keydef("Name","name"),
             Keydef("Title","title"),

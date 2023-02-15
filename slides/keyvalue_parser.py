@@ -4,6 +4,7 @@ Created on 2023-02-14
 @author: wf
 '''
 import pyparsing as pp
+import traceback
 import typing
 from dataclasses import dataclass
 
@@ -237,7 +238,7 @@ class KeyValueParser(BaseKeyValueParser):
         Args:
              keydefs(List[Keydef]): a list of keyword definitions
         """
-        BaseKeyValueParser.setKeydefs(keydefs)
+        BaseKeyValueParser.setKeydefs(self,keydefs)
         # set local variable from config
         record_delim=self.config.record_delim
         key_value_delim=self.config.key_value_delim
@@ -249,7 +250,7 @@ class KeyValueParser(BaseKeyValueParser):
         # valid keys are alphas
         g_key = pp.Word(pp.alphas)
         # items may not have record or value delimiters or must be quoted
-        g_item = pp.Word(pp.printables+" ", excludeChars=record_delim+value_delim+quote) | pp.QuotedString(quote_char=quote)
+        g_item = pp.OneOrMore(pp.Word(pp.printables+" "+self.config.unicode_chars, excludeChars=record_delim+value_delim+quote) | pp.QuotedString(quote_char=quote))
         # a value is a value_delim delimited list of items
         g_value = pp.delimited_list(g_item, delim=value_delim)
         l_key_value_sep = pp.Suppress(pp.Literal(key_value_delim))
@@ -257,7 +258,7 @@ class KeyValueParser(BaseKeyValueParser):
         self.g_grammar = pp.delimited_list(g_key_value, delim=record_delim)
             
         g_key.add_parse_action(lambda x: 
-            self.keydefs_by_keyword[x[0]] if x[0] in self.keydefs_by_keyword else x
+            self.keydefs_by_keyword[x[0]].key if x[0] in self.keydefs_by_keyword else x
         )
         g_value.add_parse_action(lambda x: 
             [x] if len(x) > 1 else x
@@ -284,14 +285,13 @@ class KeyValueParser(BaseKeyValueParser):
                 for k,v in self.g_grammar.parse_string(text, parse_all=True):
                     if self.config.strip:
                         if isinstance(v,list):
-                            for vi in list:
-                                if vi:
-                                    vi=vi.strip()
+                            v=self.getStrippedValues(v)
                         else:
                             v=v.strip()
                     key_values[k] = v
             except Exception as ex:
-                error_msg=f"parsing {text} failed: \n{str(ex)}"
+                tb = traceback.format_exc()
+                error_msg=f"parsing {text} failed: \n{str(ex)}\n{tb}"
                 self.add_error(error_msg)
             self.handleErrors(text)
         return key_values
