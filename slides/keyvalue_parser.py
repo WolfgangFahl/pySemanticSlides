@@ -160,8 +160,8 @@ class KeyValueSplitParser():
                         # map keyword to key
                         key=keydef.key
                         values_split=Split(delim=self.config.value_delim,keep_quotes=False)
-                        values=values_split.split(values_str)
                         if keydef.has_list:
+                            values=values_split.split(values_str)
                             if self.config.strip:
                                 stripped_values=[]
                                 for value in values:
@@ -170,7 +170,7 @@ class KeyValueSplitParser():
                             # value is a list
                             value=values
                         else:
-                            value=values[0]
+                            value=values_str
                     if self.config.strip and isinstance(value,str):
                         value=value.strip()
                 result[key]=value

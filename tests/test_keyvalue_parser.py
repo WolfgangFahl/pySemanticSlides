@@ -49,6 +49,20 @@ class TestKeyValueParser(Basetest):
                 if debug:
                     print(parts)
                 self.assertEqual(expected,parts)
+                
+    def testNotAsList(self):
+        """
+        test the list handling
+        """
+        debug=True
+        config=KeyValueParserConfig()
+        kvp=KeyValueSplitParser(config=config)
+        keydefs=[Keydef("Keywords","keyword")]
+        text="Keywords: a,b,c"
+        kv_dict,errors=kvp.getKeyValues(text, keydefs)
+        if debug:
+            print(kv_dict)
+        self.assertEqual("a,b,c",kv_dict["keyword"])
         
     def yieldConfigs(self,debug:bool=False):
         """
