@@ -16,6 +16,7 @@ class KeyValueParserConfig():
     record_delim:str="•"
     value_delim:str=","
     quote:str="\'"
+    unicode_chars:str="•→–"
     strip:bool=True
     ignore_errors:bool=True
     defined_keys_only:bool=False
@@ -52,7 +53,7 @@ class Split():
     quoted string splitter
     """
     
-    def __init__(self,delim:str=',',quote:str="'",unicode_chars:str="•→",keep_quotes:bool=True):
+    def __init__(self,delim:str=',',quote:str="'",unicode_chars:str="•→–",keep_quotes:bool=True):
         """
         constructor
         
@@ -134,13 +135,13 @@ class KeyValueSplitParser():
         keydefs_by_keyword=Keydef.as_dict(keydefs)
         if text:
             try: 
-                rsplit=Split(delim=self.config.record_delim)
+                rsplit=Split(delim=self.config.record_delim,unicode_chars=self.config.unicode_chars)
                 records=rsplit.split(text)
             except Exception as rsplit_ex:
                 add_error(f"record split failed {rsplit_ex}")
                 records=[]
             for record in records:
-                key_value_split=Split(delim=self.config.key_value_delim)
+                key_value_split=Split(delim=self.config.key_value_delim,unicode_chars=self.config.unicode_chars)
                 key_values=key_value_split.split(record)
                 if len(key_values)!=2:
                     add_error(f"{key_values} has {len(key_values)}) elements but should have two")
@@ -159,7 +160,7 @@ class KeyValueSplitParser():
                         keydef=keydefs_by_keyword[keyword]
                         # map keyword to key
                         key=keydef.key
-                        values_split=Split(delim=self.config.value_delim,keep_quotes=False)
+                        values_split=Split(delim=self.config.value_delim,unicode_chars=self.config.unicode_chars,keep_quotes=False)
                         if keydef.has_list:
                             values=values_split.split(values_str)
                             if self.config.strip:
