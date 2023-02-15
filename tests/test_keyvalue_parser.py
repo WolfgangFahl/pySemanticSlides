@@ -170,7 +170,7 @@ class TestKeyValueParser(Basetest):
                     if debug:
                         print(f"{text}")
                         print(json.dumps(kv,indent=2))
-                    if debug or len(errors>expected_errors):
+                    if debug or len(errors)>expected_errors:
                         print(f"errors: {errors}")
                     self.assertEqual(expected_errors,len(errors))
                     if expected is not None and expected_errors==0:
