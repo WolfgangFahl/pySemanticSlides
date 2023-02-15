@@ -12,7 +12,7 @@ class TestSlideWalker(Basetest):
 
     def setUp(self, debug=False, profile=True):
         """
-        setup for test by downloading the lecture into a temp folder
+        setUp and set the slides directory
         """
         Basetest.setUp(self, debug=debug, profile=profile)
         self.debug = debug

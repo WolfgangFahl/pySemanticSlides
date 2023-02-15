@@ -52,7 +52,7 @@ class Slide(object):
         if self.title is None:
             self.title=self.name
         pass
-    
+        
     def asDict(self):
         summary={
             "page": self.page,
