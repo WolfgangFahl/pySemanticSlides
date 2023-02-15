@@ -165,7 +165,13 @@ class PPT(object):
                 summary=f"{self.title}/{self.author}/{self.created}  {self.basename}"
         return summary
     
-    def asDict(self):
+    def asDict(self)->dict:
+        """
+        convert me to a dict
+        
+        Returns:
+            dict: summary
+        """
         if self.error:
             summary={"error":str(self.error),"path":self.filepath}
         else:    
@@ -246,14 +252,12 @@ class SlideWalker(object):
             writer.writerow(record)
         return output.getvalue()
     
-    def yieldSlides(self,verbose:bool, excludeHiddenSlides:bool=False, runDelim:str="•"):
+    def yieldPowerPointFiles(self,verbose:bool=False):
         """
-        yield all slides
+        generate  my power point files
         
         Args:
-            verbose(bool): if True print details on stdout
-            excludeHiddenSlides(bool): If True hidden lecture will be excluded and also ignored in the page counting
-            runDelim(str): the delimiter to use for powerpoint slide text 
+            verbose(bool): if True show information about the processing
         """
         pptxFiles=self.findFiles(self.rootFolder, ".pptx")
         if verbose:
@@ -262,13 +266,26 @@ class SlideWalker(object):
             if verbose:
                 print(f"Extracting data from {pptxFile}")
             ppt=PPT(pptxFile)
-            ppt.getSlides(excludeHiddenSlides=excludeHiddenSlides,runDelim=runDelim)
-            if verbose:
-                print (f"{ppt.summary()}")
-            for slide in ppt.slides:
-                yield ppt,slide
+            ppt.open()
+            if not ppt.error:
+                yield ppt
+    
+    def yieldSlides(self,ppt,verbose:bool, excludeHiddenSlides:bool=False, runDelim:str="•",slideDetails:bool=False):
+        """
+        yield all slides
         
-    def dumpInfo(self,outputFormat:str, excludeHiddenSlides:bool=False, runDelim:str="•"):
+        Args:
+            verbose(bool): if True print details on stdout
+            excludeHiddenSlides(bool): If True hidden lecture will be excluded and also ignored in the page counting
+            runDelim(str): the delimiter to use for powerpoint slide text 
+        """
+        ppt.getSlides(excludeHiddenSlides=excludeHiddenSlides,runDelim=runDelim)
+        for slide in ppt.slides:
+            if verbose and slideDetails:
+                print(slide.summary())
+            yield slide
+        
+    def dumpInfo(self,outputFormat:str, excludeHiddenSlides:bool=False, runDelim:str="•", slideDetails:bool=False):
         '''
         dump information about the lecture in the given format
         
@@ -280,24 +297,23 @@ class SlideWalker(object):
         info={}
         csvRecords=[]
         verbose=self.debug or outputFormat=="txt"
-        for ppt,slide in self.yieldSlides(verbose, excludeHiddenSlides, runDelim):
-            if not ppt.error:
-                pptSummary=ppt.asDict()
-                slideSummary=[]
-                for slide in ppt.slides:
-                    if self.debug or outputFormat=="txt":
-                        print(slide.summary())
-                    slideRecord=slide.asDict()
-                    csvRecord = OrderedDict()
-                    csvRecord["basename"]=ppt.basename
-                    csvRecord["page"]=slideRecord["page"]
-                    csvRecord["name"]=slideRecord["name"]
-                    title=''.join(slideRecord["title"].split())
-                    csvRecord["title"]=title
-                    csvRecords.append(csvRecord)
-                    slideSummary.append(slideRecord)
-                pptSummary["slides"]=slideSummary
-                info[ppt.basename]=pptSummary
+        for ppt in self.yieldPowerPointFiles(verbose):
+            pptSummary=ppt.asDict()
+            if verbose:
+                print (f"{ppt.summary()}")
+            slideSummary=[]
+            for slide in self.yieldSlides(ppt,verbose, excludeHiddenSlides, runDelim,slideDetails=slideDetails):
+                slideRecord=slide.asDict()
+                csvRecord = OrderedDict()
+                csvRecord["basename"]=ppt.basename
+                csvRecord["page"]=slideRecord["page"]
+                csvRecord["name"]=slideRecord["name"]
+                title=''.join(slideRecord["title"].split())
+                csvRecord["title"]=title
+                csvRecords.append(csvRecord)
+                slideSummary.append(slideRecord)
+            pptSummary["slides"]=slideSummary
+            info[ppt.basename]=pptSummary
         if outputFormat=="json":
             jsonStr=json.dumps(info,indent=2,default=str,ensure_ascii=False)
             print(jsonStr)
