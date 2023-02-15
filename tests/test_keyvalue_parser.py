@@ -58,11 +58,15 @@ class TestKeyValueParser(Basetest):
         config=KeyValueParserConfig()
         kvp=KeyValueSplitParser(config=config)
         keydefs=[Keydef("Keywords","keyword")]
-        text="Keywords: a,b,c"
-        kv_dict,errors=kvp.getKeyValues(text, keydefs)
-        if debug:
-            print(kv_dict)
-        self.assertEqual("a,b,c",kv_dict["keyword"])
+        for text,expected in [
+            ("Keywords: a,b,c", "a,b,c"),
+            ("Keywords: 'a','b,c','d'","'a','b,c','d'")
+        ]:
+            kv_dict,errors=kvp.getKeyValues(text, keydefs)
+            self.assertTrue(len(errors)==0)
+            if debug:
+                print(kv_dict)
+            self.assertEqual(expected,kv_dict["keyword"])
         
     def yieldConfigs(self,debug:bool=False):
         """
@@ -92,7 +96,7 @@ class TestKeyValueParser(Basetest):
                 {
                   "name": "Test",
                   "title": "Test",
-                  "extra": "1,2,3",
+                  "extra": "'1,2,3'",
                   "keywords": [
                     "A",
                     "B",
