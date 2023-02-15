@@ -245,6 +245,28 @@ class SlideWalker(object):
         for record in listOfDicts:
             writer.writerow(record)
         return output.getvalue()
+    
+    def yieldSlides(self,verbose:bool, excludeHiddenSlides:bool=False, runDelim:str="•"):
+        """
+        yield all slides
+        
+        Args:
+            verbose(bool): if True print details on stdout
+            excludeHiddenSlides(bool): If True hidden lecture will be excluded and also ignored in the page counting
+            runDelim(str): the delimiter to use for powerpoint slide text 
+        """
+        pptxFiles=self.findFiles(self.rootFolder, ".pptx")
+        if verbose:
+            print(f"found {len(pptxFiles)} powerpoint files")
+        for pptxFile in pptxFiles:
+            if verbose:
+                print(f"Extracting data from {pptxFile}")
+            ppt=PPT(pptxFile)
+            ppt.getSlides(excludeHiddenSlides=excludeHiddenSlides,runDelim=runDelim)
+            if verbose:
+                print (f"{ppt.summary()}")
+            for slide in ppt.slides:
+                yield ppt,slide
         
     def dumpInfo(self,outputFormat:str, excludeHiddenSlides:bool=False, runDelim:str="•"):
         '''
@@ -253,19 +275,12 @@ class SlideWalker(object):
         Args:
             outputFormat(str): csv, json or txt
             excludeHiddenSlides(bool): If True hidden lecture will be excluded and also ignored in the page counting
+            runDelim(str): the delimiter to use for powerpoint slide text 
         '''
-        pptxFiles=self.findFiles(self.rootFolder, ".pptx")
-        if self.debug or outputFormat=="txt":
-            print(f"found {len(pptxFiles)} powerpoint files")
         info={}
         csvRecords=[]
-        for pptxFile in pptxFiles:
-            if self.debug:
-                print(f"Extracting data from {pptxFile}")
-            ppt=PPT(pptxFile)
-            ppt.getSlides(excludeHiddenSlides=excludeHiddenSlides,runDelim=runDelim)
-            if self.debug or outputFormat=="txt":
-                print (f"{ppt.summary()}")
+        verbose=self.debug or outputFormat=="txt"
+        for ppt,slide in self.yieldSlides(verbose, excludeHiddenSlides, runDelim):
             if not ppt.error:
                 pptSummary=ppt.asDict()
                 slideSummary=[]
@@ -291,7 +306,7 @@ class SlideWalker(object):
             csvText=self.asCsv(sortedCsvRecords,["basename","page","name","title"])
             print(csvText)
         elif outputFormat=="lod":
-            return csvRecords
+            return info
         
     def dumpInfoToString(self,outputFormat:str, excludeHiddenSlides:bool=True):
         """
