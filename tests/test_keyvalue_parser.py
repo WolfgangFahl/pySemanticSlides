@@ -74,7 +74,8 @@ class TestKeyValueParser(Basetest):
             testParams = [
             (
                 f"Name{s}Test{r}Title{s} Test{r}Extra{s} '1,2,3'{r}Keywords{s} A{v}B{v}C{v}'D,E'{v}F",
-               {
+                0,
+                {
                   "name": "Test",
                   "title": "Test",
                   "extra": "1,2,3",
@@ -89,6 +90,7 @@ class TestKeyValueParser(Basetest):
             ),
             (
                 f'Name{s} SQL Geschachtelte Anfragen{r}Titel{s}  Quantorensimulation  in SQL - Geschachtelte Anfragen{r}Lernziel{s}  SQL-DML-NestedQueries{r}Keywords{s} SQL{v} SQL Syntax{v}  nested   queries',
+                0,
                 {
                   "name": "SQL Geschachtelte Anfragen",
                   "title": "Quantorensimulation  in SQL - Geschachtelte Anfragen",
@@ -100,16 +102,48 @@ class TestKeyValueParser(Basetest):
                     ]
                 }
             ),
-            #("test", "keywords", f"Title:Title{delim}Keywords:test{delim}Label:title"),
-            #("test", "keywords", f"Title:Title{delim}Keywords:test"),
-            #("test with spaces", "keywords", f"Title:Title{delim}Keywords:test with spaces{delim}Label:title"),
-            #("test with spaces", "keywords", f"Title:Title{delim}Keywords:test with spaces"),
-            #("SQL-DML", "keywords", f"Title:Title{delim}Keywords:SQL-DML"),
-            #("SQL_DML", "keywords", f"Title:Title{delim}Keywords:SQL_DML"),
-            #(None, "keywords", None),
-            #(None, None, None),
-            #("rel algebra, query plan","keywords", ' Name: Auswertungsplan einer SQL-Abfrage mit relationaler Algebra darstellbar•Titel: Kanonischer Auswertungsplan zu einer SQL-Anfrage•Lernziel: •RelQuery-OptimizeQuery-SQL2RA•Keywords: •rel• •algebra•, •query• plan '),
-            #("1st normal form, database normalisation", "keywords",  "Name: •First_Normal_Form•Titel: Erste Normalform•Lernziel: •RelDesign-Normalform-1NF•Keywords: 1•st normal form, •database• •normalisation•Eine Relation   befindet sich in der ersten Normalform wenn die Wertebereiche der Attribute des Relationstypen atomar sind.•Also zum Beispiel String, Integer. Damit sind •zusammengesetzte•, •mengenwertige• •oder• •relationenwertige• Attribute •sind• •nicht• •erlaubt•.•Als Beispiel schauen wir uns die Relation Eltern an •In der ersten Eltern Relationsausprägung haben wir ein mengenwertiges Attribut Kind.•Die zweite Relationsausprägung hat keine mengenwertige Attribute mehr – hier wurden die mengen aufgelöst und stattdessen wurden mehrere Tupel eingeführt.•Der Begriff •NF²-Modelle •steht• •für• non-first-normal-form •Modelle•, also •Modelle• in •denen• •Attribut kann selbst wieder Menge von Attributen sein und ein Attributwert wieder eine Relation sein kann.•Im Folgenden gehen wir stets von Relationen in erster Normalform aus." )
+            (
+                f"Title{s}Title{r}Keywords{s}test{r}Label{s}title",
+                0,
+                {
+                  "title": "Title",
+                  "keywords": [
+                    "test"
+                  ],
+                  "label": "title"
+                }
+            ),
+            ( 
+                f"Title{s}Title{r}Keywords{s}test with spaces{r}Label{s}title",
+                0,
+                {
+                  "title": "Title",
+                  "keywords": [
+                    "test with spaces"
+                  ],
+                  "label": "title"
+                }
+            ),
+            ( 
+                None,
+                0,
+                {}
+            ),
+            ( 
+                "",
+                0,
+                {}
+            ),
+            (   
+                f"Key{s}Value1{s}Value2",
+                1,
+                {} 
+            ),
+            (   
+                f"Key{s}Value1{r}",
+                1,
+                {} 
+            )
             ]
             for testParam in testParams:
                 yield (parser,)+testParam
@@ -131,13 +165,15 @@ class TestKeyValueParser(Basetest):
         for testParam in self.yieldTestParams(debug):
             with self.subTest(testParam=testParam):
                 try:
-                    kvp,text,expected=testParam
+                    kvp,text,expected_errors,expected=testParam
                     kv,errors=kvp.getKeyValues(text,keydefs)
                     if debug:
                         print(f"{text}")
                         print(json.dumps(kv,indent=2))
+                    if debug or len(errors>expected_errors):
                         print(f"errors: {errors}")
-                    if expected is not None:
+                    self.assertEqual(expected_errors,len(errors))
+                    if expected is not None and expected_errors==0:
                         for keyword in expected:
                             self.assertTrue(keyword in kv, f"{keyword} not found")
                             value=kv.get(keyword, None)
