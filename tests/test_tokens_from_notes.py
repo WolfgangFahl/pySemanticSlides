@@ -44,7 +44,7 @@ class TestCollectKeyValuesFromNotes(Basetest):
         keydefs=[
             Keydef("Name","name"),
             Keydef("Title","title"),
-            Keydef("Keywords","keywords"),
+            Keydef("Keywords","keywords",False),
             Keydef("Literature","literatur",True)
         ]
         pres_list=self.getPresentations()
@@ -60,7 +60,7 @@ class TestCollectKeyValuesFromNotes(Basetest):
                     expected={
                         "name": "Why_semantify",
                         "title": "Why semantify your slides?",
-                        "keywords": "Semantification",
+                        "keywords": "Semantification, FAIR",
                         "literatur": [
                           "Furth2018",
                           "Fair2016"
