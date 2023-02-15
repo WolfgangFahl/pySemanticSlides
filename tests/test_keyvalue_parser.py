@@ -5,8 +5,9 @@ Created on 2023-02-15
 '''
 from tests.basetest import Basetest
 import json
-from slides.keyvalue_parser import Split,Keydef,KeyValueSplitParser,KeyValueParserConfig
-#,SimpleKeyValueParser, KeyValueParser, 
+from slides.keyvalue_parser import Split,Keydef,\
+    KeyValueSplitParser,KeyValueParserConfig,\
+    SimpleKeyValueParser, KeyValueParser
 
 class TestKeyValueParser(Basetest):
     """
@@ -58,12 +59,13 @@ class TestKeyValueParser(Basetest):
         config=KeyValueParserConfig()
         kvp=KeyValueSplitParser(config=config)
         keydefs=[Keydef("Keywords","keyword")]
+        kvp.setKeydefs(keydefs)
         for text,expected in [
             ("Keywords: a,b,c", "a,b,c"),
             ("Keywords: 'a','b,c','d'","'a','b,c','d'")
         ]:
-            kv_dict,errors=kvp.getKeyValues(text, keydefs)
-            self.assertTrue(len(errors)==0)
+            kv_dict=kvp.getKeyValues(text)
+            self.assertTrue(len(kvp.errors)==0)
             if debug:
                 print(kv_dict)
             self.assertEqual(expected,kv_dict["keyword"])
@@ -79,7 +81,14 @@ class TestKeyValueParser(Basetest):
                     yield config
     
     def yieldConfiguredParsers(self,debug:bool=False):
-        for parserClass in [KeyValueSplitParser]: #,SimpleKeyValueParser,KeyValueParser:
+        """
+        generate a loop over the available parser 
+        """
+        for parserClass in [
+            KeyValueSplitParser,
+            SimpleKeyValueParser,
+            #KeyValueParser
+        ]:
             for config in self.yieldConfigs(debug):
                 parser=parserClass(config=config)
                 yield parser
@@ -171,7 +180,7 @@ class TestKeyValueParser(Basetest):
         tests the keyword extraction
         """
         debug=self.debug
-        #debug=True
+        debug=False
         keydefs=[
             Keydef("Name","name"),
             Keydef("Title","title"),
@@ -184,18 +193,22 @@ class TestKeyValueParser(Basetest):
             with self.subTest(testParam=testParam):
                 try:
                     kvp,text,expected_errors,expected=testParam
-                    kv,errors=kvp.getKeyValues(text,keydefs)
+                    kvp_name=kvp.__class__.__name__
+                    if text and (kvp.config.quote in text) and ("Simple" in kvp_name):
+                        continue
+                    kvp.setKeydefs(keydefs)
+                    kv=kvp.getKeyValues(text)
                     if debug:
                         print(f"{text}")
                         print(json.dumps(kv,indent=2))
-                    if debug or len(errors)>expected_errors:
-                        print(f"errors: {errors}")
-                    self.assertEqual(expected_errors,len(errors))
+                    if debug or len(kvp.errors)>expected_errors:
+                        print(f"errors: {kvp.errors}")
+                    self.assertEqual(expected_errors,len(kvp.errors))
                     if expected is not None and expected_errors==0:
                         for keyword in expected:
                             self.assertTrue(keyword in kv, f"{keyword} not found")
                             value=kv.get(keyword, None)
                             expected_value=expected[keyword]
-                            self.assertEqual(expected_value, value,f"{kvp.__class__.__name__} can't parse {text} using config {kvp.config}") 
+                            self.assertEqual(expected_value, value,f"{kvp_name} can't parse {text} using config {kvp.config}") 
                 except Exception as ex:
                     self.fail(str(ex))   

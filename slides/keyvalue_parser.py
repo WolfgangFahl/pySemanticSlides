@@ -93,11 +93,9 @@ class Split():
         result_list=parse_result.asList()
         return result_list
     
-class KeyValueSplitParser():
+class BaseKeyValueParser():
     """
-    Key / Value Parser
-    
-    see https://stackoverflow.com/questions/75266188/pyparsing-syntax-tree-from-named-value-list/75270267#75270267
+    general KeyValue Parser
     """
     
     def __init__(self,config:KeyValueParserConfig):
@@ -108,8 +106,57 @@ class KeyValueSplitParser():
             config(KeyValueParserConfig): the configuration to use
         """
         self.config=config
+        self.errors=[]
+        self.keydefs_by_keyword={}
         
-    def getKeyValues(self,text:str,keydefs:typing.List[Keydef])->dict:
+    def setKeydefs(self,keydefs:typing.List[Keydef]):
+        """
+        set my key definitions
+        
+        Args:
+             keydefs(List[Keydef]): a list of keyword definitions
+        """
+        self.keydefs_by_keyword=Keydef.as_dict(keydefs)
+        
+    def add_error(self,error_msg:str):
+        """
+        add the given error to my list of errors
+        
+        Args:
+            error_msg(str): the error to add
+        """
+        if self.config.debug:
+            print(error_msg)
+        self.errors.append(error_msg)
+    
+    def handleErrors(self,text:str):
+        """
+        handle my error with respect to the given text to pars
+        """
+        if not self.config.ignore_errors:
+            error_str="\n".join(self.errors)
+            raise Exception(f"key/value parsing of {text} failed with {len(self.errors)} errors:\n{error_str}")
+    
+    def getStrippedValues(self,value_list)->list:
+        """
+        strip all values in the given value list
+        """
+        if not self.config.strip:
+            return value_list
+        else:
+            stripped_values=[]
+            for value in value_list:
+                stripped_values.append(value.strip())
+            return stripped_values
+        
+class KeyValueSplitParser(BaseKeyValueParser):
+    """
+    Key / Value Parser
+    
+    see https://stackoverflow.com/questions/75266188/pyparsing-syntax-tree-from-named-value-list/75270267#75270267
+    """
+        
+    def getKeyValues(self,text:str)->dict:
         """
         get key/value pairs from the given text using the configured keys definition
         
@@ -119,65 +166,50 @@ class KeyValueSplitParser():
         Returns:
             dict: the resulting key-value pairs
         """
-        def add_error(error_msg:str):
-            """
-            add the given error
-            
-            Args:
-                error_msg(str): the error to add
-            """
-            if self.config.debug:
-                print(error_msg)
-            errors.append(error_msg)
-         
-        errors=[]   
+        self.errors=[]   
         result = dict()
-        keydefs_by_keyword=Keydef.as_dict(keydefs)
         if text:
             try: 
                 rsplit=Split(delim=self.config.record_delim,unicode_chars=self.config.unicode_chars)
                 records=rsplit.split(text)
             except Exception as rsplit_ex:
-                add_error(f"record split failed {rsplit_ex}")
+                self.add_error(f"record split failed {rsplit_ex}")
                 records=[]
             for record in records:
                 key_value_split=Split(delim=self.config.key_value_delim,unicode_chars=self.config.unicode_chars)
                 key_values=key_value_split.split(record)
                 if len(key_values)!=2:
-                    add_error(f"{key_values} has {len(key_values)}) elements but should have two")
+                    self.add_error(f"{key_values} has {len(key_values)}) elements but should have two")
                     continue
                 else:
                     key_str=key_values[0]
                     keyword=key_str.strip()
                     values_str=key_values[1]
                     # is the keyword defined
-                    if not keyword in keydefs_by_keyword:
+                    if not keyword in self.keydefs_by_keyword:
                         if self.config.defined_keys_only:
-                            add_error(f"undefined keyword {keyword}")
+                            self.add_error(f"undefined keyword {keyword}")
                         key=keyword
                         value=values_str
                     else:
-                        keydef=keydefs_by_keyword[keyword]
+                        keydef=self.keydefs_by_keyword[keyword]
                         # map keyword to key
                         key=keydef.key
                         values_split=Split(delim=self.config.value_delim,unicode_chars=self.config.unicode_chars,keep_quotes=False)
                         if keydef.has_list:
-                            values=values_split.split(values_str)
-                            if self.config.strip:
-                                stripped_values=[]
-                                for value in values:
-                                    stripped_values.append(value.strip())
-                                values=stripped_values
+                            value_list=values_split.split(values_str)
+                            value_list=self.getStrippedValues(value_list)
                             # value is a list
-                            value=values
+                            value=value_list
                         else:
                             value=values_str
                     if self.config.strip and isinstance(value,str):
                         value=value.strip()
                 result[key]=value
-        return result,errors
+            self.handleErrors(text)    
+        return result
 
-class KeyValueParser():
+class KeyValueParser(BaseKeyValueParser):
     """
     Key Value Parser (which won't handle all details properly)
     see https://stackoverflow.com/a/75270267/1497139
@@ -190,18 +222,27 @@ class KeyValueParser():
         Args:
             config(KeyValueParserConfig): the configuration to use
         """
-        self.config=config      
+        BaseKeyValueParser.__init__(self, config)  
         if config.record_delim=="\n":
             pp.ParserElement.setDefaultWhitespaceChars("\t")
         else:
             pp.ParserElement.setDefaultWhitespaceChars("\n")
         pass
+        
+    
+    def setKeydefs(self,keydefs:typing.List[Keydef]):
+        """
+        overwrite how to set my key definitions
+        
+        Args:
+             keydefs(List[Keydef]): a list of keyword definitions
+        """
+        BaseKeyValueParser.setKeydefs(keydefs)
         # set local variable from config
         record_delim=self.config.record_delim
         key_value_delim=self.config.key_value_delim
         value_delim=self.config.value_delim
         quote=self.config.quote
-        keys=self.config.keys
         #
         # initialize grammar
         # 
@@ -216,7 +257,7 @@ class KeyValueParser():
         self.g_grammar = pp.delimited_list(g_key_value, delim=record_delim)
             
         g_key.add_parse_action(lambda x: 
-            keys[x[0]] if x[0] in keys else x
+            self.keydefs_by_keyword[x[0]] if x[0] in self.keydefs_by_keyword else x
         )
         g_value.add_parse_action(lambda x: 
             [x] if len(x) > 1 else x
@@ -236,6 +277,7 @@ class KeyValueParser():
         Returns:
             dict: the resulting key-value pairs
         """
+        self.errors=[]
         key_values = dict()
         if text:         
             try:
@@ -249,26 +291,15 @@ class KeyValueParser():
                             v=v.strip()
                     key_values[k] = v
             except Exception as ex:
-                if self.config.ignore_errors:
-                    if self.config.debug:
-                        print(f"parsing {text} failed: \n{str(ex)}")
-                else:
-                    raise ex
+                error_msg=f"parsing {text} failed: \n{str(ex)}"
+                self.add_error(error_msg)
+            self.handleErrors(text)
         return key_values
     
-class SimpleKeyValueParser():
+class SimpleKeyValueParser(BaseKeyValueParser):
     """
     a simple key value parser (which won't handle quote properly)
     """
-    
-    def __init__(self,config:KeyValueParserConfig):
-        """
-        constructor
-        
-        Args:
-            config(KeyValueParserConfig): the configuration to use
-        """
-        self.config=config
  
     def getKeyValues(self,text:str)->dict:
         """
@@ -276,55 +307,44 @@ class SimpleKeyValueParser():
         
         Args:
             text(str): the text to parser
-            strip(bool): if True strip leading and trailing blanks from values
-            ignore_errors(bool): if True ignore errors
             
         Returns:
             dict: the resulting key-value pairs
-        """
-        
-        def add_error(error_msg:str):
-            """
-            add the given error
-            
-            Args:
-                error_msg(str): the error to add
-            """
-            if self.config.debug:
-                print(error_msg)
-            errors.append(error_msg)
-            
+        """ 
         result={}
-        errors=[]
-        key_values=text.split(self.config.record_delim)
-        for key_value in key_values:
-            if not self.config.key_value_delim in key_value:
-                error_msg=f"missing key_value delimiter '{self.config.key_value_delim} in {key_value}"
-                add_error(error_msg)
-                if self.config.ignore_errors:
-                    continue
-            parts=key_value.split(self.config.key_value_delim)
-            if len(parts)>2:
-                error_msg=(f"notes syntax error: {key_value} has {len(parts)}) elements but should have two")
-                add_error(error_msg)
-                break
-            # parsed key and value
-            pkey,value=parts[0],parts[1]
-            pkey=pkey.strip()
-            if self.config.strip:
-                value=value.strip()
-            if pkey in self.config.keys:
-                key=self.config.keys[pkey]
-            else:
-                if self.config.defined_keys_only:
-                    error_msg=f"undefined key {pkey}"
-                    add_error(error_msg)
+        self.errors=[]
+        if text:
+            key_values=text.split(self.config.record_delim)
+            for key_value in key_values:
+                if not self.config.key_value_delim in key_value:
+                    error_msg=f"missing key_value delimiter '{self.config.key_value_delim} in {key_value}"
+                    self.add_error(error_msg)
+                    if self.config.ignore_errors:
+                        continue
+                parts=key_value.split(self.config.key_value_delim)
+                if len(parts)>2:
+                    error_msg=(f"notes syntax error: {key_value} has {len(parts)}) elements but should have two")
+                    self.add_error(error_msg)
+                    break
+                # parsed key and value
+                pkey,value=parts[0],parts[1]
+                pkey=pkey.strip()
+                if self.config.strip:
+                    value=value.strip()
+                if pkey in self.keydefs_by_keyword:
+                    keydef=self.keydefs_by_keyword[pkey]
+                    key=keydef.key
+                    if keydef.has_list:
+                        value_list=value.split(self.config.value_delim)
+                        value_list=self.getStrippedValues(value_list)
+                        # value is a list
+                        value=value_list
                 else:
-                    key=pkey
-            if self.config.split_values and self.config.value_delim in value:
-                value=value.split(self.config.value_delim)
-            result[key]=value # could do another split here if need be
-            if not self.config.ignore_errors:
-                error_str="\n".join(errors)
-                raise Exception(f"key/value parsing of {text} failed with {len(errors)} errors:\n{error_str}")
+                    if self.config.defined_keys_only:
+                        error_msg=f"undefined key {pkey}"
+                        self.add_error(error_msg)
+                    else:
+                        key=pkey
+                result[key]=value 
+                self.handleErrors(text)
         return result

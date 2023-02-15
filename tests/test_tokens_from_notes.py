@@ -47,15 +47,16 @@ class TestCollectKeyValuesFromNotes(Basetest):
             Keydef("Keywords","keywords",False),
             Keydef("Literature","literatur",True)
         ]
+        kvp.setKeydefs(keydefs)
         pres_list=self.getPresentations()
         for _pres_file,pres_dict in pres_list.items():
             slide_records=pres_dict["slides"]
             for i,slide_record in enumerate(slide_records):
                 notes=slide_record["notes"]
-                notes_info,errors=kvp.getKeyValues(notes, keydefs)
+                notes_info=kvp.getKeyValues(notes)
                 if debug:
                     print(json.dumps(notes_info,indent=2))
-                self.assertEqual(0,len(errors))
+                self.assertEqual(0,len(kvp.errors))
                 if i==1:
                     expected={
                         "name": "Why_semantify",
