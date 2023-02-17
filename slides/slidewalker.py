@@ -315,7 +315,7 @@ class SlideWalker(object):
             pptSummary["slides"]=slideSummary
             info[ppt.basename]=pptSummary
         if outputFormat=="json":
-            jsonStr=json.dumps(info,indent=2,default=str,ensure_ascii=False)
+            jsonStr=json.dumps(info,indent=2,default=str,ensure_ascii=False).encode('utf8')
             print(jsonStr)
         elif outputFormat=="csv":
             sortedCsvRecords=sorted(csvRecords, key = lambda row: (row["basename"], int(row["page"])))
