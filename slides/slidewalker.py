@@ -315,8 +315,12 @@ class SlideWalker(object):
             pptSummary["slides"]=slideSummary
             info[ppt.basename]=pptSummary
         if outputFormat=="json":
+            # 
+            # avoid the windows horror story 
+            # https://stackoverflow.com/questions/9233027/unicodedecodeerror-charmap-codec-cant-decode-byte-x-in-position-y-character
+            # https://stackoverflow.com/a/18337754/1497139
             jsonStr=json.dumps(info,indent=2,default=str,ensure_ascii=False).encode('utf8')
-            print(jsonStr)
+            print(jsonStr.decode("utf-8"))
         elif outputFormat=="csv":
             sortedCsvRecords=sorted(csvRecords, key = lambda row: (row["basename"], int(row["page"])))
             csvText=self.asCsv(sortedCsvRecords,["basename","page","name","title"])

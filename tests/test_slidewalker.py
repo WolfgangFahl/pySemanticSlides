@@ -1,5 +1,4 @@
 import json
-import os
 from tests.basetest import Basetest
 
 from slides.slidewalker import SlideWalker
