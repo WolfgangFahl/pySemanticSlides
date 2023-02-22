@@ -59,6 +59,7 @@ usage() {
   echo "-w|--wiki: create semantic mediawiki"
   echo ""
   echo "example: $0 9991 http://localhost:9991 https://sus.bitplan.com sus"
+  echo "   needs an option such as -a to actually do something ..."
   exit 1
 }
 
@@ -205,9 +206,22 @@ start_cron() {
 #
 install_plantuml() {
   local l_container="$1"
+  docker commit $l_container
   docker exec $l_container sh -c "apt-get update"
   docker exec $l_container sh -c "apt-get install -y plantuml"
   docker commit $l_container
+}
+
+# 
+# finalize installation
+#
+finalize_installation() {
+  local l_container="$1"
+  docker commit $l_container
+  for script in /tmp/initdb.sh /tmp/update.sh /tmp/addSysopUser.sh /tmp/installExtensions.sh
+  do 
+    docker exec $l_container sh -c "$script"
+  done
 }
 
 #
@@ -297,12 +311,6 @@ done
 }
 
 #container=mw135lts
-container_prefix=mw139lts
-csep="-"
-isep="_"
-mw_container="${container_prefix}${csep}mw"
-mw_image="${container_prefix}${isep}mw"
-db_container="${container_prefix}${csep}db"
 if [ $# -lt 4 ]
 then
   usage
@@ -316,6 +324,12 @@ else
   prefix="$1"
   shift
   password=$(cat $HOME/.$prefix/passwd.txt)
+  csep="-"
+  isep="_"
+  container_prefix=mw139lts${csep}${prefix}
+  mw_container="${container_prefix}${csep}mw"
+  mw_image="${container_prefix}${isep}mw"
+  db_container="${container_prefix}${csep}db"
   while [  "$1" != ""  ]
   do
     option="$1"
@@ -324,7 +338,7 @@ else
       update_pymediawikidocker
       reset_docker
       #smw_wiki 1.35.9 3.2.3 $container $password
-      smw_wiki 1.39.1 4.1.0 $container_prefix $password $base_port
+      smw_wiki 1.39.1 4.1.0 $container_prefix $base_port $password
       # install fontawesome
       font_awesome $mw_container
       # Localsetting modifications
@@ -357,6 +371,9 @@ else
     -f|--font)
       font_awesome $mw_container
       ;;
+    --finalize)
+      finalize_installation $mw_container
+      ;;
     -h|--help)
       usage
       ;;
@@ -368,7 +385,7 @@ else
       reset_docker
       ;;
     -w|--wiki)
-      smw_wiki 1.39.1 4.1.0 $container_prefix $password $base_port
+      smw_wiki 1.39.1 4.1.0 $container_prefix $base_port $password
       ;;
     esac
     shift
