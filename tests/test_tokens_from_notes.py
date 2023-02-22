@@ -23,7 +23,7 @@ class TestCollectKeyValuesFromNotes(Basetest):
         Basetest.setUp(self, debug=debug, profile=profile)
         self.debug = debug
         base_path=Path(__file__).parent.parent
-        self.slidedir=f"{base_path}/examples"
+        self.slidedir=f"{base_path}/examples/semanticslides"
         pass
     
     def getPresentations(self):
