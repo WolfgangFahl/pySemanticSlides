@@ -81,6 +81,7 @@ class Slide(object):
         lines = []
         line=""
         delim=""
+        y=None
         for shape in shapes:
             if not shape.has_text_frame:
                 continue
@@ -91,15 +92,14 @@ class Slide(object):
                     delim=runDelim
             
             y=self.getMM(shape.top)
-            if YRange.isIn(yRange,y):
+            if y and YRange.isIn(yRange,y):
                 lines.append(line)
             
             delim=""
             line=""
         
-        if YRange.isIn(yRange,y):  
+        if y and YRange.isIn(yRange,y):  
             lines.append(line)
-        
             return lines
     
     def getText(self,yRange=None):

@@ -74,3 +74,4 @@ packages = [
 
 [project.scripts]
 slidewalker = "slides.slidewalker:main"
+semslides = "slides.semslides:main"
