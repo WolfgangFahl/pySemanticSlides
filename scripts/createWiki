@@ -1,0 +1,377 @@
+#!/bin/bash
+# WF 2023-01-25
+# create a docker based semantic Mediawiki
+# for the given 
+#   base_port
+#   server_local_url
+#   server_web_url
+#   prefix
+
+#ansi colors
+#http://www.csc.uvic.ca/~sae/seng265/fall04/tips/s265s047-tips/bash-using-colors.html
+blue='\033[0;34m'
+red='\033[0;31m'
+green='\033[0;32m' # '\e[1;32m' is too bright for white bg.
+endColor='\033[0m'
+
+#
+# a colored message
+#   params:
+#     1: l_color - the color of the message
+#     2: l_msg - the message to display
+#
+color_msg() {
+  local l_color="$1"
+  local l_msg="$2"
+  echo -e "${l_color}$l_msg${endColor}"
+}
+
+#
+# error
+#
+# show the given error message on stderr and exit
+#
+#   params:
+#     1: l_msg - the error message to display
+#
+error() {
+  local l_msg="$1"
+  # use ansi red for error
+  color_msg $red "Error:" 1>&2
+  color_msg $red "\t$l_msg" 1>&2
+  exit 1
+}
+
+#
+# show usage
+#
+usage() {
+  echo "$0  base_port server_local_url  server_web_url prefix"
+  echo "[-a|-all|-b|--bash|-c|--container|-d|--debug|-f|--font|-h|--help|-r|--reset"
+  echo "-a|--all:  perform all steps"
+  echo "-b|--bash: bash into docker image"
+  echo "-c|--container:  sets container prefix to use"
+  echo "-d|--debug:  debug the script with set -x"
+  echo "-f|--font: install font awesome"
+  echo "-h|--help:  show this usage"
+  echo "-p|--patch: monkey patch the wiki setting"
+  echo "-r|--reset: reset docker images"
+  echo "-w|--wiki: create semantic mediawiki"
+  echo ""
+  echo "example: $0 9991 http://localhost:9991 https://sus.bitplan.com sus"
+  exit 1
+}
+
+#
+#
+# update pymediawikidocker
+#
+update_pymediawikidocker() {
+  base=$HOME/source/python/pymediawikidocker
+  if [ ! -d $base ]
+  then
+    mkdir -p $HOME/source/python
+    cd $HOME/source/python
+    git clone https://github.com/WolfgangFahl/pymediawikidocker
+  else
+    cd $base
+    git pull
+  fi
+  cd $base
+  pip install .
+}
+
+#
+# upload the given local file to the given container path on the given container
+# needs to calculate the container id from the container name
+#
+docker_upload() {
+  local l_container="$1"
+  local l_local_file="$2"
+  local l_container_path="$3"
+  local l_cid=$(docker inspect $l_container | jq '.[] | { Id } ' | grep Id | cut -f4 -d'"')
+  docker cp $l_local_file $l_cid:$l_container_path
+}
+
+#
+# append the given snippet in /tmp to the given container names target file
+#
+append_snippet() {
+  local l_container="$1"
+  local l_snippet="$2"
+  local l_target="$3"
+  docker_upload $l_container /tmp/$l_snippet "/tmp"
+  docker exec $l_container sh -c "cat /tmp/$l_snippet >> $l_target"
+  rm /tmp/$l_snippet
+}
+
+#
+# install font awesome
+#
+font_awesome() {
+  local l_container="$1"
+  local l_snippet=snippet$$
+  cat << EOF > /tmp/$l_snippet
+# install fontawesome
+# WF 2023-01-25
+cd /var/www
+curl https://use.fontawesome.com/releases/v5.15.4/fontawesome-free-5.15.4-web.zip -o fontawesome.zip
+unzip fontawesome.zip
+ln -s -f fontawesome-free-5.15.4-web fontawesome
+chown -R www-data.www-data fontawesome
+cd fontawesome
+ln -s svgs/regular svg
+cat << EOS > /etc/apache2/conf-available/font-awesome.conf
+Alias /font-awesome /var/www/fontawesome
+<Directory /var/www/fontawesome>
+  Options Indexes FollowSymLinks MultiViews
+  Require all granted
+</Directory>
+EOS
+a2enconf font-awesome
+service apache2 restart
+EOF
+  docker_upload $l_container /tmp/$l_snippet /root
+  docker exec $l_container sh -c "chmod +x /root/$l_snippet;/root/$l_snippet"
+}
+
+#
+# reset docker images
+#
+reset_docker() {
+  docker images | grep mw1
+  docker ps
+  mwimages=$(docker images | grep mw1 | cut -f1 -d " ")
+  # kill/stop all running containers for the given images
+  for image in $mwimages mariadb:10.9
+  do
+    echo "killing/stopping containers for $image"
+    local l_container=$(docker ps -q --filter ancestor=$image)
+    if [ "$l_container" != "" ]
+    then
+      echo "killing and removing containers for $image ..."
+      # docker inspect $l_container
+      docker kill $l_container
+      # docker stop $(docker ps -aq)
+      docker rm $l_container
+    fi
+  done
+}
+
+#
+# create the semantic media wiki
+#
+smw_wiki() {
+  local l_mwversion="$1"
+  local l_smwversion="$2"
+  local l_container="$3"
+  local l_baseport="$4"
+  local l_passwd="$5"
+  # Create the Semantic Mediawiki
+
+  # no Diagrams extension due to https://github.com/samwilson/diagrams-extension/issues/75
+  # Diagrams
+  mwcluster \
+  --forceRebuild\
+  --versionList "$l_mwversion"\
+  --basePort $l_baseport\
+  --sqlBasePort 10306\
+  --mariaDBVersion 10.9\
+  --container_name "$l_container"\
+  --password "$l_passwd"\
+  --smw "$l_smwversion"\
+  --extensionList "Admin Links" \
+      "Diagrams" \
+      "Header Tabs" \
+      "ImageMap", "MagicNoCache" "Maps9" \
+      "Mermaid" "MsUpload" "Nuke" "Page Forms" \
+      "ParserFunctions" "PDFEmbed" "Renameuser" "Replace Text" "Semantic Result Formats" "SyntaxHighlight" \
+      "Variables" \
+  --logo https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Bigsmile_smiley_yellow_simple.svg/128px-Bigsmile_smiley_yellow_simple.svg.png
+}
+
+#
+# start cron
+# workaround the initial start cron somehow not working
+#
+start_cron() {
+  local l_container="$1"
+  # Starting periodic command scheduler: cron.
+  docker exec $l_container sh -c "service cron start"
+}
+
+#
+# install plantuml
+#
+install_plantuml() {
+  local l_container="$1"
+  docker exec $l_container sh -c "apt-get update"
+  docker exec $l_container sh -c "apt-get install -y plantuml"
+  docker commit $l_container
+}
+
+#
+# monkey patch
+# some essential Localsetting entries
+
+# params
+#   1: local container
+#   2: server_web_url
+#   3: server_local_url
+#
+monkey_patch() {
+  local l_container="$1"
+  local l_server_web_url="$2"
+  local l_server_local_url="$3"
+  local l_sep="^"
+cat<<EOF |
+wgRawHtml${l_sep}\$wgRawHtml = true;
+wgServer${l_sep}\$wgServer = "$l_server_web_url";
+wgVerifyMimeType${l_sep}# add more file upload options
+wgAllowImageTag${l_sep}\$wgAllowImageTag = true;
+wgUseInstantCommons${l_sep}\$wgUseInstantCommons = true;
+error_reporting${l_sep}error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
+EOF
+while read line
+do
+  var=$(echo $line | cut -f1 -d "${l_sep}")
+  patch=$(echo $line | cut -f2 -d "${l_sep}")
+  local_settings="/var/www/html/LocalSettings.php"
+  docker exec $l_container grep "$var" LocalSettings.php
+  if [ $? -ne 0 ]
+  then
+    echo "adding $var to $patch"
+    case $var in
+      wgRawHtml)
+	docker exec  $l_container sh -c "echo '\n\$wgRawHtml = true;\n' >> $local_settings"
+      ;;
+      wgAllowImageTag)
+	docker exec  $l_container sh -c "echo '\n\$wgAllowImageTag = true;\n' >> $local_settings"
+      ;;
+      wgUseInstantCommons)
+	snippet=snippet$$
+cat << EOF > /tmp/$snippet
+# InstantCommons allows wiki to use images from https://commons.wikimedia.org
+\$wgUseInstantCommons = true;
+EOF
+	append_snippet $l_container $snippet $local_settings
+	;;
+      error_reporting)
+	snippet=snippet$$
+cat << EOF > /tmp/$snippet
+error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
+EOF
+	append_snippet $l_container $snippet $local_settings
+	;;
+      wgVerifyMimeType)
+	snippet=snippet$$
+	cat << EOF > /tmp/$snippet
+# add more file upload options
+# http://www.mediawiki.org/wiki/Manual:Configuring_file_uploads/de
+\$wgFileExtensions = array_merge(\$wgFileExtensions, array('avi','doc', 'gcode','gpx','htm','html','jscad','jpg','pdf','ppt','docx', 'docxm','xlsx','xlsm','mp3','mp4','odp','otp','pptx', 'pptm','reqif','reqifz','rtf','rythm','scad','sh','stl','svg','vcf','vim','uew','xls','xml','zip'));
+
+\$wgVerifyMimeType=false;
+EOF
+	append_snippet $l_container $snippet $local_settings
+      ;;
+    esac
+  else
+    case $var in
+      wgRawHtml|wgVerifyMimeType|error_reporting)
+	echo "$var already set to $patch"
+      ;;
+      wgUseInstantCommons)
+	echo "patching $var to $patch"
+	docker exec $l_container  sed -i "s#$var = false#$var = true#g" $local_settings
+      ;;
+      wgServer)
+	echo "patching $var to $patch"
+	docker exec $l_container  sed -i 's#'$l_server_local_url'#'$l_server_web_url'#g' $local_settings
+      ;;
+      *)
+	echo "patch logic for $var incomplete"
+	;;
+    esac
+  fi
+done
+}
+
+#container=mw135lts
+container_prefix=mw139lts
+csep="-"
+isep="_"
+mw_container="${container_prefix}${csep}mw"
+mw_image="${container_prefix}${isep}mw"
+db_container="${container_prefix}${csep}db"
+if [ $# -lt 4 ]
+then
+  usage
+else
+  base_port="$1"
+  shift
+  server_local_url="$1"
+  shift
+  server_web_url="$1"
+  shift
+  prefix="$1"
+  shift
+  password=$(cat $HOME/.$prefix/passwd.txt)
+  while [  "$1" != ""  ]
+  do
+    option="$1"
+    case $option in
+     -a|--all)
+      update_pymediawikidocker
+      reset_docker
+      #smw_wiki 1.35.9 3.2.3 $container $password
+      smw_wiki 1.39.1 4.1.0 $container_prefix $password $base_port
+      # install fontawesome
+      font_awesome $mw_container
+      # Localsetting modifications
+      monkey_patch $mw_container $server_web_url $server_local_url
+      # start cron job
+      start_cron $mw_container
+      # install plantuml
+      install_plantuml $mw_container
+      ;;
+    -c|--container)
+      shift
+      if [ $# -lt 1 ]
+      then
+        color_msg $red "need container name prefix"
+        usage
+      fi
+      container_prefix="$1"
+      mw_container="${container_prefix}${csep}mw"
+      db_container="${container_prefix}${csep}db"
+      ;;
+    -b|--bash)
+      docker exec -it $mw_container /bin/bash
+      ;;
+    --cron)
+      start_cron $mw_container
+      ;;
+    -d|--debug)
+      set -x
+      ;;
+    -f|--font)
+      font_awesome $mw_container
+      ;;
+    -h|--help)
+      usage
+      ;;
+    -p|--patch)
+      monkey_patch $mw_container $server_web_url $server_local_url
+      install_plantuml $mw_container
+      ;;
+    -r|--reset)
+      reset_docker
+      ;;
+    -w|--wiki)
+      smw_wiki 1.39.1 4.1.0 $container_prefix $password $base_port
+      ;;
+    esac
+    shift
+  done
+fi
+
