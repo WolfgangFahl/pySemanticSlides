@@ -206,9 +206,22 @@ start_cron() {
 #
 install_plantuml() {
   local l_container="$1"
+  docker commit $l_container
   docker exec $l_container sh -c "apt-get update"
   docker exec $l_container sh -c "apt-get install -y plantuml"
   docker commit $l_container
+}
+
+# 
+# finalize installation
+#
+finalize_installation() {
+  local l_container="$1"
+  docker commit $l_container
+  for script in /tmp/initdb.sh /tmp/update.sh /tmp/addSysopUser.sh /tmp/installExtensions.sh
+  do 
+    docker exec $l_container sh -c "$script"
+  done
 }
 
 #
@@ -357,6 +370,9 @@ else
       ;;
     -f|--font)
       font_awesome $mw_container
+      ;;
+    --finalize)
+      finalize_installation $mw_container
       ;;
     -h|--help)
       usage
