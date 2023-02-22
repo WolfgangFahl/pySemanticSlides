@@ -1,0 +1,61 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: >-
+  Scaling up semantics; lessons learned across the life
+  sciences
+message: If you use this presentation please cite it as follows
+type: dataset
+authors:
+  - given-names: Christopher J.
+    family-names: Mungall
+    affiliation: 'Lawrence Berkeley National Laboratory '
+    email: cjmungall@lbl.gov
+    orcid: 'https://orcid.org/0000-0002-6601-2165'
+identifiers:
+  - type: doi
+    value: 10.5281/zenodo.7654899
+    description: Presentation PDF and PPTX
+  - type: url
+    value: 'https://zenodo.org/record/7654899#.Y_WwILSZPap'
+    description: Presenation PDF and PPTX
+repository-code: 'https://github.com/linkml/linkml'
+url: 'https://linkml.io/'
+repository: 'https://github.com/linkml/linkml-runtime'
+repository-artifact: 'https://pypi.org/project/linkml'
+abstract: >-
+  Semantic modeling is key to understanding the biological
+  processes underpinning the health of humans and the health
+  of ecosystems on this planet. There are a number of
+  different approaches to semantic modeling, varying from
+  modeling of *things* in the form of knowledge graphs,
+  modeling of *data structures* in the form of semantic
+  schemas, and modeling of *words* in the form of
+  ultra-large language models. Taking the metaphor of
+  modeling paradigms as planets in a semantic solar system,
+  I will take us on a tour through the solar system,
+  exploring the strengths of each approach, and looking
+  through a historic lens at how we keep iterating over
+  similar solutions with each rotation around the sun. As an
+  alternative to the dichotomy of either resisting change,
+  or starting afresh I urge an approach were we embrace
+  change and adapt with each revolution. I will look
+  specifically at how the OBO community have built powerful
+  knowledge graphs of biological concepts, how the LinkML
+  modeling language incorporates aspects of both frame
+  languages and shape languages, and how language models can
+  be integrated with semantic ontological approaches through
+  the OntoGPT framework
+keywords:
+  - Linked Data
+  - LinkML
+  - Semantics
+  - Onotology
+  - Modeling
+  - Knowledge Graph
+  - OBO
+license: CC-BY-4.0
+commit: Version 1
+version: '1'
+date-released: '2023-02-19'
