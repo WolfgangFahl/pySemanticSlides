@@ -1,0 +1,1182 @@
+{
+  "mungall-swat4hcls-2023.pptx": {
+    "title": "PowerPoint Presentation",
+    "author": "",
+    "created": null,
+    "path": "./mungall-swat4hcls-2023.pptx",
+    "slides": [
+      {
+        "page": 1,
+        "pdf_page": 1,
+        "title": "Scaling up semantics",
+        "name": "",
+        "text": [
+          "",
+          "Scaling up semantics",
+          "lessons learned from across the life sciences•",
+          "Chris Mungall••Lawrence Berkeley National Laboratory••cjmungall@lbl.gov•",
+          "https://bit.ly/mungall-swat-23• ",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 2,
+        "pdf_page": 2,
+        "title": "Providing Semantics for Systems Biology",
+        "name": "",
+        "text": [
+          "",
+          "Providing Semantics for Systems Biology",
+          "",
+          "✅",
+          "❌",
+          "The language of biological knowledge is text and images•Digestion into •semantic models• necessary to be •properly• understood by machines",
+          ""
+        ],
+        "notes": "In the life sciences we are generating massive amounts of new data and knowledge, the way we communicate this knowledge is through words and pictures"
+      },
+      {
+        "page": 3,
+        "pdf_page": 3,
+        "title": "The Gene Ontology: Semantic Systems Biology",
+        "name": "",
+        "text": [
+          "",
+          "The Gene Ontology: Semantic Systems Biology",
+          "",
+          "✅",
+          "",
+          "❌",
+          "✅",
+          "✅",
+          "",
+          "45k •classes",
+          "750,000• e•xperimentally supported annotations manually curated from 140,000 publications•1bn computed •annotations",
+          "geneontology.org",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 4,
+        "pdf_page": 4,
+        "title": "Semantic resources and life science applications",
+        "name": "",
+        "text": [
+          "",
+          "Semantic resources and life science applications",
+          "ontologies",
+          "Semantic resources",
+          "applications",
+          "",
+          "",
+          "Molecular biology",
+          "Translational research and health",
+          "Microbiome• science••multi-Omics integration",
+          "semantic models",
+          ""
+        ],
+        "notes": "TODO: add glyphs for genes, drugs, diseases, samples"
+      },
+      {
+        "page": 5,
+        "pdf_page": 5,
+        "title": "We have always sought to model the world",
+        "name": "",
+        "text": [
+          "We• have always sought to model the world",
+          "https://en.wikipedia.org/wiki/Antikythera_mechanism• ",
+          "m•odel of",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 6,
+        "pdf_page": 6,
+        "title": "Preservation and rediscovery of knowledge",
+        "name": "",
+        "text": [
+          "Preservation and rediscovery of knowledge",
+          ""
+        ],
+        "notes": "TODO"
+      },
+      {
+        "page": 7,
+        "pdf_page": 7,
+        "title": "Modeling paradigms in the semantic solar system\n",
+        "name": "",
+        "text": [
+          "",
+          "",
+          "",
+          "Modeling paradigms in the semantic solar system•",
+          "Schemas",
+          "LLMs",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 8,
+        "pdf_page": 8,
+        "title": "Modeling paradigms in the semantic solar system\n",
+        "name": "",
+        "text": [
+          "",
+          "",
+          "",
+          "Modeling paradigms in the semantic solar system•",
+          "Knowledge Graph planet•Model of •things",
+          "Schemas",
+          "LLMs",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 9,
+        "pdf_page": 9,
+        "title": "Modeling paradigms in the semantic solar system\n",
+        "name": "",
+        "text": [
+          "",
+          "",
+          "",
+          "Modeling paradigms in the semantic solar system•",
+          "Semantic schema planet•Model of •information",
+          "Knowledge Graph planet•Model of •things",
+          "Schemas",
+          "LLMs",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 10,
+        "pdf_page": 10,
+        "title": "Modeling paradigms in the semantic solar system\n",
+        "name": "",
+        "text": [
+          "",
+          "",
+          "",
+          "Modeling paradigms in the semantic solar system•",
+          "Semantic schema planet•Model of •information",
+          "Knowledge Graph planet•Model of •things",
+          "Large Language Model planet•Model of •words",
+          "Schemas",
+          "LLMs",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 11,
+        "pdf_page": 11,
+        "title": "Planet KG: currently hot",
+        "name": "",
+        "text": [
+          "",
+          "Planet KG•: currently• •hot",
+          "Knowledge Graph planet•Model of •things•Temperature: •hot",
+          "KGs",
+          "Reese J, •KG-COVID-19• •10.1101/2020.08.17.254839",
+          "",
+          ""
+        ],
+        "notes": "TODO: chart should only show KG\nTIMEPOINT: 5m"
+      },
+      {
+        "page": 12,
+        "pdf_page": 12,
+        "title": "Previous iterations of KG planet: Semantic Web 2001",
+        "name": "",
+        "text": [
+          "",
+          "Previous •iterations of KG planet•: •S•emantic •W•eb 2001",
+          "RDF",
+          "Differences:•Ad hoc IDs >> URIs•Scale >> Correctness•Property Graphs >> Triples•Graphs, ML >> Reasoning•Shiny databases >> Standards",
+          ""
+        ],
+        "notes": "Limiting to see KGs purely as branding exercise: genuine difference in emphasis and communities"
+      },
+      {
+        "page": 13,
+        "pdf_page": 13,
+        "title": "Previous iterations: bio-ontologies 1999->",
+        "name": "",
+        "text": [
+          "",
+          "Previous •iterations•: bio-ontologies 1999->",
+          "GO",
+          "Differences:•All entities >> just terms•Quantity >> Quality",
+          "Ashburner et al •Gene Ontology: tool for the unification of biology•. •Nature Genetics• 2000",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 14,
+        "pdf_page": 14,
+        "title": "The interconnected OBO KG 2000->present",
+        "name": "",
+        "text": [
+          "",
+          "The interconnected OBO KG 2000->present",
+          "15k citations/year•1 billion annotations",
+          "10-1000 billion annotations",
+          "Millions of environmental samples annotated",
+          "Diagnosing rare disease patients",
+          "uses",
+          "Analyzing single-cell seq",
+          "You’re welcome!",
+          "obofoundry.org",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 15,
+        "pdf_page": 15,
+        "title": "OBO and Wikidata",
+        "name": "",
+        "text": [
+          "OBO and Wikidata",
+          ""
+        ],
+        "notes": "TIMEPOINT: 10m"
+      },
+      {
+        "page": 16,
+        "pdf_page": 16,
+        "title": "OBO and Wikidata",
+        "name": "",
+        "text": [
+          "OBO and Wikidata",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 17,
+        "pdf_page": 17,
+        "title": "OBO and Wikidata\n\nMany more OBO ontologies to go!\nJoin us on #wikidata on OBO slack\nhttp://obofoundry.org\nNext up:\nEnvironment Ontology (ENVO)\n\nH\nJoin",
+        "name": "",
+        "text": [
+          "OBO and Wikidata••Many more OBO ontologies to go!•Join us on #wikidata on OBO slack•http://obofoundry.org•Next up:•Environment Ontology (ENVO)••H•Join",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 18,
+        "pdf_page": 18,
+        "title": "OBO KG in Ubergraph",
+        "name": "",
+        "text": [
+          "OBO KG in Ubergraph",
+          "https://icbo-conference.github.io/icbo2022/papers/ICBO-2022_paper_5005.pdf• ",
+          "Inter-ontology connections in Ubergraph, grouped by OBO ontology",
+          "https://ubergraph.apps.renci.org/sparql• •https://github.com/INCATools/ubergraph• ",
+          "Triplestore with interlinked subset of OBO•Inference pre-entailed using Relation Graph•Pre-categorized using Biolink•Powerful federated queries with uniprot, wikidata, others•",
+          "",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 19,
+        "pdf_page": 19,
+        "title": "Use of semantics in the connected KG",
+        "name": "",
+        "text": [
+          "",
+          "Use of semantics in the connected KG",
+          "",
+          "glucan biosynthesis•(GO:0009250)",
+          "polysaccharide biosynthesis•(GO:0000271)",
+          "⊑",
+          "≡",
+          "⊓",
+          "",
+          "⊓",
+          "∃.has_output",
+          "≡",
+          "∃.has_output",
+          "",
+          "⊑",
+          "Inferred by•OWL reasoner",
+          "biosynthesis•(GO:0009058)",
+          "glucan•(CHEBI:37163)",
+          "biosynthesis•(GO:0009058)",
+          "polysaccharide•(CHEBI:18154)",
+          ""
+        ],
+        "notes": "This paradigm now used throughout OBO"
+      },
+      {
+        "page": 20,
+        "pdf_page": 20,
+        "title": "Ontology Development Kit (ODK)",
+        "name": "",
+        "text": [
+          "Ontology Development Kit (ODK)",
+          "https://incatools.github.io/ontology-development-kit• ",
+          "ODK makes it easy to create a new GitHub repo following best practice + automation•standardized, customizable and automatically executable workflows, and packages all required tooling in a single Docker image ",
+          "Matentzoglu et al (2022) •Ontology Development Kit: a toolkit for building, maintaining and standardizing biomedical ontologies•. •Database• 10.1093/database/baac087",
+          "NEW: Ontology Access Kit (OAK). Python library for working with ontologies •https://incatools.github.io/ontology-access-kit• •",
+          ""
+        ],
+        "notes": "TIMEPOINT: 15m"
+      },
+      {
+        "page": 21,
+        "pdf_page": 21,
+        "title": "Gene Ontology\nCausal Activity Models:\nSystems KGs",
+        "name": "",
+        "text": [
+          "Gene Ontology•Causal Activity Models:•Systems KGs",
+          "Thomas, PD (2019)•: Gene Ontology Causal Activity Modeling (GO-CAM) moves beyond GO annotations to structured descriptions of biological functions and system. •Nat Gen PMC7012280",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 22,
+        "pdf_page": 22,
+        "title": "",
+        "name": "",
+        "text": [
+          "",
+          "http://rdf.geneontology.org/• - SPARQL endpoint ",
+          "Biologist View",
+          "RDF view",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 23,
+        "pdf_page": 23,
+        "title": "",
+        "name": "",
+        "text": [
+          "",
+          "https://www.alliancegenome.org/gene/HGNC:11584• ",
+          "Pathway views on Alliance gene pages",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 24,
+        "pdf_page": 24,
+        "title": "",
+        "name": "",
+        "text": null,
+        "notes": ""
+      },
+      {
+        "page": 25,
+        "pdf_page": 25,
+        "title": "Previous iterations of planet KG",
+        "name": "",
+        "text": [
+          "",
+          "Previous •iterations of planet KG",
+          "Semantic•Nets",
+          "Knowledge Representation with graphs didn’t start with the semantic web and ontologies…",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 26,
+        "pdf_page": 26,
+        "title": "Previous iterations: 1950s KGs",
+        "name": "",
+        "text": [
+          "",
+          "Previous •iterations•: 1950s KGs",
+          "Semantic•Nets",
+          "“The cat is bitten by the dog”",
+          "“The cat is on the mat”",
+          "Richens RH, \"Preprogramming for mechanical translation\" •Mechanical Translation• 3 (1), July 1956, 20–25",
+          "Differences:•Emphasis on language•Applications: Machine Translation",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 27,
+        "pdf_page": 27,
+        "title": "Previous iterations: KGs in the 3rd century CE ",
+        "name": "",
+        "text": [
+          "",
+          "Previous •iterations•: •KGs in the •3rd century CE ",
+          "Poryphrian Trees",
+          "Differences:•Philosophical inquiry >> Computation•Theology >> science or empiricism",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 28,
+        "pdf_page": 28,
+        "title": "Curse of the eternal return",
+        "name": "",
+        "text": [
+          "",
+          "Curse of the •eternal return",
+          "RDF",
+          "KGs",
+          "Ontologies",
+          ""
+        ],
+        "notes": "TODO: emphasize circularity more in figure\nTIMEPOINT: 20m"
+      },
+      {
+        "page": 29,
+        "pdf_page": 29,
+        "title": "Curse of the eternal return",
+        "name": "",
+        "text": [
+          "",
+          "Curse of the eternal return",
+          "RDF",
+          "KGs",
+          "Ontologies",
+          ""
+        ],
+        "notes": "TODO: emphasize circularity more in figure\nopportunity"
+      },
+      {
+        "page": 30,
+        "pdf_page": 30,
+        "title": "Embrace CURIEs",
+        "name": "",
+        "text": [
+          "",
+          "Embrace CURIEs",
+          "URI are rarely used •as identifiers• outside RDF frameworks•URIs are awkward to work with outside RDF tooling•Solution: CURIEs•Prefixed IDs have been standard in bio-databases before RDF•GO:0005634•UniProtKB:P12345•Key•: •always make the prefixmap explicit",
+          "Hoyt, C. T., •et al.• (2022) •The Unifying the identification of biomedical entities with the Bioregistry•. •Nature Scientific Data•, s41597-022-01807-3",
+          "https://bioregistry.io/•https://github.com/linkml/prefixmaps/• ",
+          ""
+        ],
+        "notes": "TODO: tidy"
+      },
+      {
+        "page": 31,
+        "pdf_page": 31,
+        "title": "Can we have semantics in our KGs?",
+        "name": "",
+        "text": [
+          "Can we have semantics in our KGs?",
+          "The story: •RDF and OWL provide semantics for •the• web•The reality:•OWL is great for terminology maintenance•OWL layering in RDF is problematic and ignored in non-RDF KGs•OWL is a poor fit for •contingent knowledge• common in the life sciences",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 32,
+        "pdf_page": 32,
+        "title": "Example: semantics of parthood",
+        "name": "",
+        "text": [
+          "Example: semantics of parthood",
+          ":Planet",
+          ":•SolarSystem",
+          ":Galaxy",
+          ":partOf",
+          ":partOf",
+          "Doesn’t capture quantification",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 33,
+        "pdf_page": 33,
+        "title": "Example: semantics of parthood in OWL",
+        "name": "",
+        "text": [
+          "Example: semantics of parthood in OWL",
+          "Class•: Planet•  •SubClassOf•: •partOf• •some• SolarSystem•Class•: SolarSystem•  •SubClassOf•: •partOf• •some• Galaxy",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 34,
+        "pdf_page": 34,
+        "title": "RDF/OWL Ontology Rendering",
+        "name": "",
+        "text": [
+          "RDF/OWL Ontology Rendering",
+          ":Planet",
+          ":SolarSystem",
+          ":Galaxy",
+          "<blank>",
+          "<blank>",
+          ":partOf",
+          "owl:Restriction",
+          "rdfs:subClassOf",
+          "rdfs:subClassOf",
+          "owl:someValuesFrom",
+          "owl:someValuesFrom",
+          "rdf:type",
+          "rdf:type",
+          "owl:onProperty",
+          "owl:onProperty",
+          "Complex monstrosity•Misaligned• with mental model•Confuses developers•Not amenable to transitive/graph querying•E.g. •what kinds of things are found in  galaxy?",
+          ""
+        ],
+        "notes": "TIMEPOINT: 25m"
+      },
+      {
+        "page": 35,
+        "pdf_page": 35,
+        "title": "OWLStar Property Graph conceptual model",
+        "name": "",
+        "text": [
+          "OWLStar Property Graph conceptual model",
+          ":Planet",
+          ":SolarSystem",
+          ":Galaxy",
+          ":partOf",
+          ":partOf",
+          "Simple view •(as used in Wikidata)",
+          "https://github.com/linkml/owlstar• ",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 36,
+        "pdf_page": 36,
+        "title": "OWLStar Property Graph conceptual model",
+        "name": "",
+        "text": [
+          "OWLStar Property Graph conceptual model",
+          ":Planet",
+          ":SolarSystem",
+          ":Galaxy",
+          "owlstar:SomeValuesFrom",
+          ":partOf",
+          ":partOf",
+          "owlstar:interpretation",
+          "owlstar:interpretation",
+          "Simple view •(as used in Wikidata)",
+          "Decorate• with semantics•Assumes •Property Graph•Decoration can be •deferred",
+          "https://github.com/linkml/owlstar• ",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 37,
+        "pdf_page": 37,
+        "title": "OWLStar Property Graph in RDFStar",
+        "name": "",
+        "text": [
+          "OWLStar Property Graph in RDFStar",
+          ":Planet",
+          ":SolarSystem",
+          ":Galaxy",
+          "owlstar:SomeValuesFrom",
+          ":partOf",
+          ":partOf",
+          "owlstar:interpretation",
+          "owlstar:interpretation",
+          "<<:Planet :part-of :SolarSystem>> •owlstar:interpretation owlstar:AllSomeInterpretation .•<<:SolarSystem :part-of :Galaxy>>• owlstar:interpretation owlstar:AllSomeInterpretation .•",
+          "https://github.com/linkml/owlstar• ",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 38,
+        "pdf_page": 38,
+        "title": "OWLStar Property Graph in OneGraph",
+        "name": "",
+        "text": [
+          "OWLStar Property Graph in OneGraph",
+          ":Planet",
+          ":SolarSystem",
+          ":Galaxy",
+          "owlstar:SomeValuesFrom",
+          ":partOf",
+          ":partOf",
+          "owlstar:interpretation",
+          "owlstar:interpretation",
+          "Coming Soon: •OneGraph layering•",
+          "https://github.com/linkml/owlstar• ",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 39,
+        "pdf_page": 39,
+        "title": "Semantics of contingent knowledge in KGs",
+        "name": "",
+        "text": [
+          "Semantics of contingent knowledge in KGs",
+          "FOL/model theory is the basis of RDF and OWL•\t… •yet is a poor fit for much biological knowledge•\tSee:•Schulz S: •Strengths and limitations of formal ontologies in the biomedical domain• PMC2904529•Rector A: •On beyond Gruber: \"Ontologies\" in today's biomedical information systems and the limits of OWL •PMID34384571•Schulz S: “•Lmo-2 interacts with Elf-2” On the Meaning of Common Statements in Biomedical Literature •KRMED 2006•",
+          ":lmo-2",
+          ":elf-2",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 40,
+        "pdf_page": 40,
+        "title": "A new old logic layered on Property Graphs",
+        "name": "",
+        "text": [
+          "A new old logic layered on Property Graphs",
+          ":lmo-2",
+          ":elf-2",
+          "Multimodal semantics:•\tUse whatever the use case demands•\tDefeasible reasoning, bayesian probabilities, …•Or simply •defer",
+          "<< your semantics here>>",
+          "https://github.com/linkml/owlstar• ",
+          ""
+        ],
+        "notes": "TIMEPOINT: 30m"
+      },
+      {
+        "page": 41,
+        "pdf_page": 41,
+        "title": "BioLink Model: hierarchical categories for KGs",
+        "name": "",
+        "text": [
+          "BioLink Model: hierarchical categories for KGs",
+          "Unni D et al (2022). •Biolink Model: A universal schema for knowledge graphs in clinical, biomedical, and translational science•. •Clin. Tran. Sci",
+          "https://w3id.org/biolink",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 42,
+        "pdf_page": 42,
+        "title": "",
+        "name": "",
+        "text": null,
+        "notes": "Should back to Elif’s talk.\n\nFigure 3: A conceptual overview of the Translator Consortium use case and implementation plan. Variants of the gene RHOBTB2 cause epilepsy, learning difficulties, and movement disorders, presumably due to an accumulation of RHOBTB2 protein. In order to learn more about the relationship between RHOBTB2 and neurological disorders, including potential drug treatment, investigators would typically need to review data and publications from multiple resources–a manual, time-consuming, and often challenging process due to incompatibilities in data models. In Translator, data is normalized to Biolink Model such that users can pose queries and rapidly receive harmonized answers derived from independent data sources. "
+      },
+      {
+        "page": 43,
+        "pdf_page": 43,
+        "title": "",
+        "name": "",
+        "text": null,
+        "notes": "Figure 3: A conceptual overview of the Translator Consortium use case and implementation plan. Variants of the gene RHOBTB2 cause epilepsy, learning difficulties, and movement disorders, presumably due to an accumulation of RHOBTB2 protein. In order to learn more about the relationship between RHOBTB2 and neurological disorders, including potential drug treatment, investigators would typically need to review data and publications from multiple resources–a manual, time-consuming, and often challenging process due to incompatibilities in data models. In Translator, data is normalized to Biolink Model such that users can pose queries and rapidly receive harmonized answers derived from independent data sources. "
+      },
+      {
+        "page": 44,
+        "pdf_page": 44,
+        "title": "Planet Semantic Schema",
+        "name": "",
+        "text": [
+          "",
+          "",
+          "",
+          "Planet Semantic Schema",
+          "Semantic schema planet•Model of •information•Temperature: •cool",
+          "Schemas",
+          "KGs",
+          "LLMs",
+          ""
+        ],
+        "notes": "TIMEPOINT: 35m"
+      },
+      {
+        "page": 45,
+        "pdf_page": 45,
+        "title": "Previous iteration: OWL misused as schema language",
+        "name": "",
+        "text": [
+          "",
+          "Previous •iteration•: OWL misused as schema language",
+          "Semantic schema planet•Model of •information•Temperature: •cool",
+          "Description Logics",
+          "",
+          "",
+          "https://twitter.com/aaranged/status/1485670670134497281",
+          "Lessons•:•OWL is for modeling terminological knowledge•OWL is not a language to describe data",
+          ""
+        ],
+        "notes": "TODO: adjust text"
+      },
+      {
+        "page": 46,
+        "pdf_page": 46,
+        "title": "Previous iteration: Frames 1990s-2000s",
+        "name": "",
+        "text": [
+          "",
+          "Previous •iteration•: Frames 1990s-2000s",
+          "Semantic schema planet•Model of •information•Temperature: •cool",
+          "Frames",
+          "",
+          "",
+          "•OWL succeeded DAML+OIL•DAML normally frame-like",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 47,
+        "pdf_page": 47,
+        "title": "Previous revolution: Frames 1970s-1990s",
+        "name": "",
+        "text": [
+          "",
+          "Previous revolution: Frames 1970s-1990s",
+          "Semantic schema planet•Model of •information•Temperature: •cool",
+          "Frames",
+          "",
+          "",
+          "Lehmann, F. Semantic Networks. Computers Math. Applic. 23(2-5), 1-50, (1992) •https://doi.org/10.1016/0898-1221(92)90135-5• ",
+          "A Framework for Representing Knowledge•: Minsky, M. •MIT-AI Laboratory Memo 306•, June, 1974",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 48,
+        "pdf_page": 48,
+        "title": "We need semantic standards!",
+        "name": "",
+        "text": [
+          "We need semantic standards!",
+          "",
+          "",
+          ">1800 Databases",
+          ">1500 Standards",
+          ">1k Ontologies",
+          "~13.5m terms",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 49,
+        "pdf_page": 49,
+        "title": "Most data standards are underspecified",
+        "name": "",
+        "text": [
+          "Most data standards are underspecified",
+          "Most standards in fairsharing don’t have an associated schema or validator•If you’re lucky:•\tXML Schema (older)•\tJSON Schema (newer)•Bindings to ontology terms are frequently unclear• ",
+          ""
+        ],
+        "notes": "TODO: split"
+      },
+      {
+        "page": 50,
+        "pdf_page": 50,
+        "title": "Most data standards are underspecified",
+        "name": "",
+        "text": [
+          "Most data standards are underspecified",
+          "Most standards in Fairsharing don’t have an associated schema or validator•If you’re lucky:•\tXML Schema (older)•\tJSON Schema (newer)•Bindings to ontology terms are frequently unclear•What about ShEx/SHACL standards?•Most data in the biosciences not shared as RDF•Some (e.g BioPAX) are really XML standards• ",
+          ""
+        ],
+        "notes": "TODO: split"
+      },
+      {
+        "page": 51,
+        "pdf_page": 51,
+        "title": "Lack of adherence to schemas limits meta-analyses",
+        "name": "",
+        "text": [
+          "Lack of adherence to schemas limits meta-analyses",
+          "Metagenome standards• analysis findings:•Standards are underspecified•Not •machine actionable•Public data has poor conformance•Data too noisy for environmental meta-analyses",
+          "",
+          "Biosample metadata",
+          "Actual data!",
+          ""
+        ],
+        "notes": "TIMEPOINT: 40m"
+      },
+      {
+        "page": 52,
+        "pdf_page": 52,
+        "title": "LinkML: Linked Data Modeling Language",
+        "name": "",
+        "text": [
+          "",
+          "LinkML: Linked Data Modeling Language",
+          "https://linkml.io•https://github.com/linkml/linkml• ",
+          "Create data models in simple YAML files, •optionally• annotated using ontologies",
+          "id•: https://example.org/linkml/hello-world•title•: Really basic LinkML model•name•: hello-world•version•: 0.0.1••prefixes•:• •linkml•: https://w3id.org/linkml/• •sdo•: https://schema.org/• •ex•: https://example.org/linkml/hello-world/••default_prefix•: ex•default_curi_maps•:• - semweb_context••imports•:• - linkml:types••classes•:• •Person•:•   •description•: Minimal information about a person•   •class_uri•: sdo:Person•   •attributes•:•     •id•:•       •identifier•: true•       •slot_uri•: sdo:taxID•     •first_name•:•       •required•: true•       •slot_uri•: sdo:givenName•       •multivalued•: true•     •last_name•:•       •required•: true•       •slot_uri•: sdo:familyName•     •knows•:•       •range•: Person•       •multivalued•: true•       •slot_uri•: foaf:knows",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 53,
+        "pdf_page": 53,
+        "title": "LinkML: Easy for all",
+        "name": "",
+        "text": [
+          "",
+          "LinkML: Easy for all",
+          "https://linkml.io•https://github.com/linkml/linkml• ",
+          "Create data models in simple YAML files, •optionally• annotated using ontologies",
+          "Biocurator",
+          "Data Scientist",
+          "dct:creator",
+          "id•: https://example.org/linkml/hello-world•title•: Really basic LinkML model•name•: hello-world•version•: 0.0.1••prefixes•:• •linkml•: https://w3id.org/linkml/• •sdo•: https://schema.org/• •ex•: https://example.org/linkml/hello-world/••default_prefix•: ex•default_curi_maps•:• - semweb_context••imports•:• - linkml:types••classes•:• •Person•:•   •description•: Minimal information about a person•   •class_uri•: sdo:Person•   •attributes•:•     •id•:•       •identifier•: true•       •slot_uri•: sdo:taxID•     •first_name•:•       •required•: true•       •slot_uri•: sdo:givenName•       •multivalued•: true•     •last_name•:•       •required•: true•       •slot_uri•: sdo:familyName•     •knows•:•       •range•: Person•       •multivalued•: true•       •slot_uri•: foaf:knows",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 54,
+        "pdf_page": 54,
+        "title": "LinkML: Polyglot modeling",
+        "name": "",
+        "text": [
+          "",
+          "LinkML: Polyglot modeling",
+          "",
+          "JSON-Schema",
+          "Python Dataclasses",
+          "https://linkml.io•https://github.com/linkml/linkml• ",
+          "“Traditional” Applications and Infrastructure",
+          "  SQL DDL•TSVs",
+          "Create data models in simple YAML files, •optionally• annotated using ontologies",
+          "Compile to other frameworks",
+          "Biocurator",
+          "Data Scientist",
+          "dct:creator",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 55,
+        "pdf_page": 55,
+        "title": "LinkML: Bridges semantic frameworks",
+        "name": "",
+        "text": [
+          "",
+          "LinkML: •Bridges semantic frameworks",
+          "",
+          "JSON-Schema",
+          "ShEx, SHACL",
+          "JSON-LD Contexts",
+          "Python Dataclasses",
+          "OWL",
+          "https://linkml.io•https://github.com/linkml/linkml• ",
+          "Semantic Web Applications•And Infrastructure",
+          "“Traditional” Applications and Infrastructure",
+          "  SQL DDL•TSVs",
+          "Create data models in simple YAML files, •optionally• annotated using ontologies",
+          "Compile to other frameworks",
+          "Choose the right tools for the job, no lock in",
+          "Biocurator",
+          "Data Scientist",
+          "dct:creator",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 56,
+        "pdf_page": 56,
+        "title": "",
+        "name": "",
+        "text": [
+          "",
+          "id•: https://example.org/linkml/hello-world•title•: Really basic LinkML model•name•: hello-world•license•: https://creativecommons.org/publicdomain/zero/1.0/•version•: 0.0.1••prefixes•:• •linkml•: https://w3id.org/linkml/• •sdo•: https://schema.org/• •ex•: https://example.org/linkml/hello-world/••default_prefix•: ex•default_curi_maps•:• - semweb_context••imports•:• - linkml:types••classes•:• •Person•:•   •description•: Minimal information about a person•   •class_uri•: sdo:Person•   •attributes•:•     •id•:•       •identifier•: true•       •slot_uri•: sdo:taxID•     •first_name•:•       •required•: true•       •slot_uri•: sdo:givenName•       •multivalued•: true•     •last_name•:•       •required•: true•       •slot_uri•: sdo:familyName•     •knows•:•       •range•: Person•       •multivalued•: true•       •slot_uri•: foaf:knows",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "",
+          "Export data to RDF and JSON-LD",
+          ">> Make the meaning of your schema more explicit",
+          ">> Data integration hooks",
+          "Annotate schemas with ontologies",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 57,
+        "pdf_page": 57,
+        "title": "Easy ontology support via value sets",
+        "name": "",
+        "text": [
+          "",
+          "Easy ontology support via value sets",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 58,
+        "pdf_page": 58,
+        "title": "Easy ontology support via value sets",
+        "name": "",
+        "text": [
+          "",
+          "Easy ontology support via value sets",
+          ""
+        ],
+        "notes": "TIMEPOINT: 45m\n"
+      },
+      {
+        "page": 59,
+        "pdf_page": 59,
+        "title": "",
+        "name": "",
+        "text": [
+          "",
+          "Classes•:•  Person:•Slots•:•   age_in_years:        •     range: integer",
+          "LinkML Model (YAML)",
+          "Model Serializations•",
+          "CREATE TABLE \"Person\" (•age_in_years INTEGER•)",
+          "SQLDDL",
+          "<Person> CLOSED {•    (  $<Person_tes> (           <age_in_years> @linkml:Integer ? ;•}",
+          "ShEx, SHACL",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 60,
+        "pdf_page": 60,
+        "title": "Instance data as JSON/YAML, RDF, or TSV",
+        "name": "",
+        "text": [
+          "",
+          "Instance data as JSON/YAML, RDF, or TSV",
+          "from •examples.basic •import •Person•from •linkml.dumpers •import •json_dumper, rdf_dumper••sam = Person(•\"1172438\"•, •first_name•=[•\"Samual\"•, •\"J\"•], •last_name•=•\"Snooter\"•)•ann = Person(•\"17a3923\"•, •first_name•=•\"Jill\"•, •last_name•=•\"Jones\"•, •knows•=[sam.id])••print•(json_dumper.dumps(ann))•print•(yaml_dumper.dumps(ann))•print•(rdf_dumper.dumps(ann, •contexts•=•\"../examples/jsonld/basic.context.jsonld\"•))",
+          "{•  \"id\": \"17a3923\",•  \"first_name\": [•\t\"Jill\"•  ],•  \"last_name\": \"Jones\",•  \"knows\": [•\t\"1172438\"•  ],•  \"@type\": \"Person\"•}",
+          "id: 17a3923•first_name:•- Jill•last_name: Jones•knows:•- '1172438'",
+          "@prefix foaf: <http://xmlns.com/foaf/0.1/> .•@prefix sdo: <https://schema.org/> .••<https://example.org/linkml/hello-world/17a3923> a sdo:Person ;•\tfoaf:knows <https://example.org/linkml/hello-world/1172438> ;•\tsdo:familyName \"Jones\" ;•\tsdo:givenName \"Jill\" .",
+          "python",
+          "JSON output",
+          "YAML output",
+          "RDF output",
+          "",
+          "Ongoing: •coordinating with HDMF group on HDF5 readers/writers",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 61,
+        "pdf_page": 61,
+        "title": "Ecosystem",
+        "name": "",
+        "text": [
+          "",
+          "",
+          "Ecosystem",
+          "LinkML-OWL",
+          "LinkML-Datalog",
+          "DataHarmonizer",
+          "docgen",
+          "codegen",
+          "schemagen",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 62,
+        "pdf_page": 62,
+        "title": "LinkML adoption",
+        "name": "",
+        "text": [
+          "",
+          "LinkML adoption",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 63,
+        "pdf_page": 63,
+        "title": "",
+        "name": "",
+        "text": [
+          "Environmental microbiome data",
+          ""
+        ],
+        "notes": "TODO"
+      },
+      {
+        "page": 64,
+        "pdf_page": 64,
+        "title": "Open, active, helpful, inclusive community",
+        "name": "",
+        "text": [
+          "",
+          "Open, active, helpful, inclusive community",
+          "https://github.com/linkml/linkml/graphs/contributors• ",
+          ""
+        ],
+        "notes": "TIMEPOINT: 50m"
+      },
+      {
+        "page": 65,
+        "pdf_page": 65,
+        "title": "Planet Large Language Model",
+        "name": "",
+        "text": [
+          "",
+          "Planet Large Language Model",
+          "Large Language Model planet•Model of •words•Temperature: •ultra• •hot",
+          "LLMs",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 66,
+        "pdf_page": 66,
+        "title": "LLMs lack semantic understanding",
+        "name": "",
+        "text": [
+          "",
+          "LLMs lack semantic understanding",
+          "Large Language Model planet•Model of •words•Temperature: •ultra• •hot",
+          "LLMs",
+          ""
+        ],
+        "notes": "TODO: emphasize iteration and imbuing LLMs with semantics"
+      },
+      {
+        "page": 67,
+        "pdf_page": 67,
+        "title": "OntoGPT: using LLMs with semantic structures",
+        "name": "",
+        "text": [
+          "OntoGPT: using LLMs with semantic structures",
+          "Ontology layer onto OpenAI GPT-3 API•Integrates prompt engineering, semantic data models, ontology annotation, and OWL translation••Components:•SPIRES: Stochastic Parrot Interrogation and Recursive Extraction of Semantics•HALO: Hallucinating Latent Ontologies•Authoring KGs with copilot",
+          "https://github.com/monarch-initiative/ontogpt• ",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 68,
+        "pdf_page": 68,
+        "title": "SPIRES: Stochastic Parrot Interrogation and Recursive Extraction of Semantics",
+        "name": "",
+        "text": [
+          "SPIRES: •Stochastic Parrot Interrogation and Recursive Extraction of Semantics",
+          "Input: LinkML Schema•Nested/Compositional•Annotated with ontology metadata (e.g. FOODON)••Schema can be nested; e.g••Recipe has Step•Step has utensils, actions, input, output•Input has foodtype, quantity",
+          ""
+        ],
+        "notes": "TODO"
+      },
+      {
+        "page": 69,
+        "pdf_page": 69,
+        "title": "SPIRES: Stochastic Parrot Interrogation and Recursive Extraction of Semantics",
+        "name": "",
+        "text": [
+          "SPIRES: •Stochastic Parrot Interrogation and Recursive Extraction of Semantics",
+          "Input: LinkML Schema•Nested/Compositional•Annotated with ontology metadata (e.g. FOODON)•Input: Unstructured text•E.g recipe, abstract",
+          "On medium heat melt the butter and sauté the onion and bell peppers.•Add the hamburger meat and cook until meat is well done.•Add the tomato sauce, salt, pepper and garlic powder.•Salt, pepper and garlic powder can be adjusted to your own tastes.•Cook noodles as directed.•Mix the sauce and noodles if you like, I keep them separated••INGREDIENTS•UNITS: US•1 small onion (chopped)•1 bell pepper (chopped)•2 tablespoons garlic powder•3 tablespoons butter•1 teaspoon salt•1 teaspoon pepper•2 (15 ounce) cans tomato sauce•1 (16 ounce) box spaghetti noodles•1 - 1 1⁄2 lb hamburger meat.••",
+          ""
+        ],
+        "notes": "TODO"
+      },
+      {
+        "page": 70,
+        "pdf_page": 70,
+        "title": "SPIRES: Stochastic Parrot Interrogation and Recursive Extraction of Semantics",
+        "name": "",
+        "text": [
+          "SPIRES: •Stochastic Parrot Interrogation and Recursive Extraction of Semantics",
+          "Input: LinkML Schema•Nested/Compositional•Annotated with ontology metadata (e.g. FOODON)•Input: Unstructured text•E.g recipe, abstract•Process•:•Recursively query GPT3 via prompts•Annotate using OAK and Bioportal•(Map results to OWL)•",
+          "Unstructured Text••Prompt••Extract from the above text the following key-value pairs…",
+          "",
+          "",
+          "",
+          "",
+          "JSON/RDF/OWL",
+          ""
+        ],
+        "notes": "TODO"
+      },
+      {
+        "page": 71,
+        "pdf_page": 71,
+        "title": "SPIRES: Stochastic Parrot Interrogation and Recursive Extraction of Semantics",
+        "name": "",
+        "text": [
+          "",
+          "SPIRES: •Stochastic Parrot Interrogation and Recursive Extraction of Semantics",
+          "Input: LinkML Schema•Nested/Compositional•Annotated with ontology metadata (e.g. FOODON)•Input: Unstructured text•E.g recipe, abstract•Process•:•Recursively query GPT3 via prompts•Annotate using OAK and Bioportal•(Map results to OWL)•Output:•Nested JSON/RDF•(OWL TBox model)•",
+          ""
+        ],
+        "notes": "TODO"
+      },
+      {
+        "page": 72,
+        "pdf_page": 72,
+        "title": "Standard schemas in life sciences, 1990s",
+        "name": "",
+        "text": [
+          "Standard schemas in life sciences, 1990s",
+          "https://web.archive.org/web/20080828214226/http://www.mged.org/Meetings/presentations/OMG/sld019.htm• ",
+          "The •Life Sciences Research (LSR) group• is a consortium of people representing pharmaceutical companies, academic institutions, software vendors and hardware vendors from all over the world who are working together within the •Object Management Group (OMG) •to improve communication and interoperability among computational resources in life sciences research•Mission•:•To improve the quality and utility of software and information systems used in Life Sciences Research through use of the Model Driven Architecture (MDA), OMG technologies such as •UML• and •CORBA•, and MDA-supported technologies such as •XML• and •EJB",
+          ""
+        ],
+        "notes": "TIMEPOINT: 55m"
+      },
+      {
+        "page": 73,
+        "pdf_page": 73,
+        "title": "Standard schemas in life sciences, 1990s\n",
+        "name": "",
+        "text": [
+          "Standard schemas in life sciences, 1990s•",
+          "https://web.archive.org/web/20170922215834/http://www.omg.org/lsr/FAQ.html#why%20succeed• ",
+          ""
+        ],
+        "notes": ""
+      },
+      {
+        "page": 74,
+        "pdf_page": 74,
+        "title": "Conclusions",
+        "name": "",
+        "text": [
+          "Conclusions",
+          "Embrace change•Don’t be wedded to any one technology stack•Why can’t BigTable, Neo4j, etc have semantics?•We need to scale up semantics to cover ALL the data•This requires an •open, inclusive approach",
+          ""
+        ],
+        "notes": "TODO"
+      },
+      {
+        "page": 75,
+        "pdf_page": 75,
+        "title": "Acknowledgments",
+        "name": "",
+        "text": [
+          "Acknowledgments",
+          "OBO and Ontologies•OBO Operations Group•, James Overton, •Nico Matentzoglu•, Bjoern Peters•Gene Ontology Consortium•, Ben Good, Seth Carbon, Laurent-Philippe Albou, Tremayne Mushayaham, Dustin Ebert,Peter d’Eustachio, David Hill, Pascale Gaudet, Paul D Thomas•Biolink, Translator, and KG-Hub•:•NCATS Translator Data Modeling Group•, Chris Bizon, Nomi Harris, Mike Bada, Matt Brush, •Deepak Unni•, •Sierra Moxon• •KG-Hub group•, Peter Robison, Melissa Haendel, David Osumi-Sutherland, Kevin Shafer, Marcin Joachimiak, Seth Carbon, Tim Putman, Luca Cappalletti, •Justin Reese• •LinkML:•LinkML community and developer group•, •Harold Solbrig•, Sierra Moxon, Mark Miller, Sujay Patil•OntoGPT: •Harry Caufield•, Harshad Hegde",
+          ""
+        ],
+        "notes": ""
+      }
+    ]
+  }
+}
