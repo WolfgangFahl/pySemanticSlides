@@ -17,6 +17,8 @@ from io import StringIO
 import collections 
 import collections.abc
 from pptx import Presentation
+import webbrowser
+from slides.version import Version
 
 class YRange():
     '''
@@ -390,16 +392,24 @@ def main(argv=None):
     if argv is None:
         argv = sys.argv   
     program_name = os.path.basename(sys.argv[0])
+    program_version_message = f'{program_name} (v{Version.version},{Version.updated})'
     try:
         parser = argparse.ArgumentParser(description='SlideWalker - get meta information for all powerpoint presentations in a certain folder')
+        parser.add_argument("-a","--about",help="show about info [default: %(default)s]",action="store_true")
         parser.add_argument("-d", "--debug", dest="debug", action="store_true", help="show debug info")
         parser.add_argument("-f", "--format", default="json", help="output format to create: csv,json or txt (default: %(default)s)")
-        parser.add_argument("--rd","--runDelimiter",dest="runDelim",help="text run delimiter (default: %(default)s) suggested: ＿↵•",default=Slide.defaultRunDelim)
         parser.add_argument("--includeHidden",action="store_true",help="exclude hidden slides (default: %(default)s)")
+        parser.add_argument("--rd","--runDelimiter",dest="runDelim",help="text run delimiter (default: %(default)s) suggested: ＿↵•",default=Slide.defaultRunDelim)
         parser.add_argument("--rootPath",default=".")
+        parser.add_argument('-V', '--version', action='version', version=program_version_message)
         args = parser.parse_args(argv[1:])
-        sw=SlideWalker(args.rootPath,args.debug)
-        sw.dumpInfo(args.format,excludeHiddenSlides=not args.includeHidden,runDelim=args.runDelim)
+        if args.about:
+            print(program_version_message)
+            print(f"see {Version.doc_url}")
+            webbrowser.open(Version.doc_url)
+        else:
+            sw=SlideWalker(args.rootPath,args.debug)
+            sw.dumpInfo(args.format,excludeHiddenSlides=not args.includeHidden,runDelim=args.runDelim)
           
     except KeyboardInterrupt:
         ### handle keyboard interrupt ###

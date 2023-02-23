@@ -38,7 +38,7 @@ class SemSlides():
             ArgumentParser: the argument parser
         """
         parser = ArgumentParser(description=Version.description, formatter_class=RawDescriptionHelpFormatter)
-        parser.add_argument("--about",help="show about info [default: %(default)s]",action="store_true")
+        parser.add_argument("-a","--about",help="show about info [default: %(default)s]",action="store_true")
         parser.add_argument('--context', default="MetaModel",help='context to generate from [default: %(default)s]')
         parser.add_argument("-d", "--debug", dest="debug", action="store_true", help="show debug info")
         parser.add_argument('-V', '--version', action='version', version=version_msg)
