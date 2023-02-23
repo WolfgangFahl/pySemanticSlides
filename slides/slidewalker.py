@@ -35,7 +35,9 @@ class Slide(object):
     '''
     a single slide
     '''
-    def __init__(self,ppt,slide,page,pdf_page,runDelim:str=" "):
+    defaultRunDelim=""
+    
+    def __init__(self,ppt,slide,page,pdf_page,runDelim:str=None):
         """
         constructor
         """
@@ -45,6 +47,8 @@ class Slide(object):
         self.pdf_page=pdf_page
         self.name=slide.name
         self.title=None
+        if runDelim is None:
+            runDelim=Slide.defaultRunDelim
         self.runDelim=runDelim
         # https://stackoverflow.com/a/40821359/1497139
         if slide.shapes.title:
@@ -75,12 +79,23 @@ class Slide(object):
         else:
             return emu.mm
     
-    def getText4Shapes(self,shapes,yRange,runDelim:str=" "):
+    def getText4Shapes(self,shapes,yRange,runDelim:str=None):
+        """
+        get the text for the given shapes in the given yRange using the given
+        run delimiter
+        
+        Args:
+            shapes:
+            yRange:
+            runDelim(str): the delimiter for text runs
+        """
         # lines will be populated with a list of strings,
         # one for each "line"  in presentation
         lines = []
         line=""
         delim=""
+        if runDelim is None:
+            runDelim=self.runDelim
         y=None
         for shape in shapes:
             if not shape.has_text_frame:
@@ -105,10 +120,15 @@ class Slide(object):
     def getText(self,yRange=None):
         '''
         get the text in the given yRange
+        
+        Args:
+            yRange:
+            
+        Return:
+            str: the notes for this slide
         '''
         text=self.getText4Shapes(self.slide.shapes,yRange,runDelim=self.runDelim)
         return text
-    
     
     def getNotes(self,yRange=None,useShapes:bool=False)->str:
         """
@@ -190,13 +210,15 @@ class PPT(object):
         except Exception as ex:
             self.error=ex
             
-    def getSlides(self, excludeHiddenSlides:bool=False,runDelim:str=" "):
+    def getSlides(self, excludeHiddenSlides:bool=False,runDelim:str=None):
         '''
         get my slides
         
         Args:
             excludeHiddenSlides(bool): if True exclude hidden Slides
         '''
+        if runDelim is None:
+            runDelim=Slide.defaultRunDelim
         if self.prs is None:
             self.open()
         if not self.error:
@@ -270,7 +292,7 @@ class SlideWalker(object):
             if not ppt.error:
                 yield ppt
     
-    def yieldSlides(self,ppt,verbose:bool, excludeHiddenSlides:bool=False, runDelim:str="•",slideDetails:bool=False):
+    def yieldSlides(self,ppt,verbose:bool, excludeHiddenSlides:bool=False, runDelim:str=None,slideDetails:bool=False):
         """
         yield all slides
         
@@ -285,7 +307,7 @@ class SlideWalker(object):
                 print(slide.summary())
             yield slide
         
-    def dumpInfo(self,outputFormat:str, excludeHiddenSlides:bool=False, runDelim:str="•", slideDetails:bool=False):
+    def dumpInfo(self,outputFormat:str, excludeHiddenSlides:bool=False, runDelim:str=None, slideDetails:bool=False):
         '''
         dump information about the lecture in the given format
         
@@ -354,7 +376,7 @@ class SlideWalker(object):
             list: a list of files found
         '''
         foundFiles=[]
-        for root, dirs, files in os.walk(path, topdown=False):
+        for root, _dirs, files in os.walk(path, topdown=False):
             for name in files:
                 if name.endswith(ext) and not name.startswith("~$"):
                     filepath=os.path.join(root, name)
@@ -371,12 +393,13 @@ def main(argv=None):
     try:
         parser = argparse.ArgumentParser(description='SlideWalker - get meta information for all powerpoint presentations in a certain folder')
         parser.add_argument("-d", "--debug", dest="debug", action="store_true", help="show debug info")
-        parser.add_argument("-f", "--format", help="output format to create: csv,json or txt")
-        parser.add_argument("--includeHidden",action="store_true",help="exclude hidden slides")
+        parser.add_argument("-f", "--format", default="json", help="output format to create: csv,json or txt (default: %(default)s)")
+        parser.add_argument("--rd","--runDelimiter",dest="runDelim",help="text run delimiter (default: %(default)s) suggested: ＿↵•",default=Slide.defaultRunDelim)
+        parser.add_argument("--includeHidden",action="store_true",help="exclude hidden slides (default: %(default)s)")
         parser.add_argument("--rootPath",default=".")
         args = parser.parse_args(argv[1:])
         sw=SlideWalker(args.rootPath,args.debug)
-        sw.dumpInfo(args.format,excludeHiddenSlides=not args.includeHidden)
+        sw.dumpInfo(args.format,excludeHiddenSlides=not args.includeHidden,runDelim=args.runDelim)
           
     except KeyboardInterrupt:
         ### handle keyboard interrupt ###
