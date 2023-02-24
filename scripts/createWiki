@@ -1,7 +1,7 @@
 #!/bin/bash
 # WF 2023-01-25
 # create a docker based semantic Mediawiki
-# for the given 
+# for the given
 #   base_port
 #   server_local_url
 #   server_web_url
@@ -185,7 +185,7 @@ smw_wiki() {
       "Diagrams" \
       "Header Tabs" \
       "ImageMap", "MagicNoCache" "Maps9" \
-      "Mermaid" "MsUpload" "Nuke" "Page Forms" \
+      "Mermaid" "MsUpload" "Network" "Nuke" "Page Forms" \
       "ParserFunctions" "PDFEmbed" "Renameuser" "Replace Text" "Semantic Result Formats" "SyntaxHighlight" \
       "Variables" \
   --logo https://upload.wikimedia.org/wikipedia/commons/thumb/f/f9/Bigsmile_smiley_yellow_simple.svg/128px-Bigsmile_smiley_yellow_simple.svg.png
@@ -212,14 +212,14 @@ install_plantuml() {
   docker commit $l_container
 }
 
-# 
+#
 # finalize installation
 #
 finalize_installation() {
   local l_container="$1"
   docker commit $l_container
   for script in /tmp/initdb.sh /tmp/update.sh /tmp/addSysopUser.sh /tmp/installExtensions.sh
-  do 
+  do
     docker exec $l_container sh -c "$script"
   done
 }
@@ -391,4 +391,3 @@ else
     shift
   done
 fi
-
