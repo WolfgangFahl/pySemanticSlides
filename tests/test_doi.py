@@ -24,7 +24,7 @@ class TestDOI(Basetest):
         self.assertEqual(doi_str,meta_json["DOI"])
         btex=doi.fetchBibTexDict()
         self.assertEqual('1972',btex['year'])
-        self.assertEqual('Communications of the {ACM}',btex["journal"])
+        self.assertEqual('Communications of the ACM',btex["journal"])
         btex_plain=doi.fetchPlainTextBibTexDict()
         self.assertEqual('Communications of the ACM',btex_plain["journal"])
         pass
