@@ -14,9 +14,8 @@ import sys
 import traceback
 from io import StringIO
 # https://stackoverflow.com/a/70631361/1497139
-import collections 
-import collections.abc
 from pptx import Presentation
+
 import webbrowser
 from slides.version import Version
 
@@ -27,7 +26,7 @@ class YRange():
     def __init__(self,minY=0,maxY=300):
         self.minY=minY
         self.maxY=maxY
-        
+
     @staticmethod
     def isIn(yRange,y):
         result=y==0 or yRange is None or (y>=yRange.minY and y<=yRange.maxY)
@@ -38,7 +37,7 @@ class Slide(object):
     a single slide
     '''
     defaultRunDelim=""
-    
+
     def __init__(self,ppt,slide,page,pdf_page,runDelim:str=None):
         """
         constructor
@@ -58,7 +57,7 @@ class Slide(object):
         if self.title is None:
             self.title=self.name
         pass
-        
+
     def asDict(self):
         summary={
             "page": self.page,
@@ -69,23 +68,23 @@ class Slide(object):
             "notes": self.getNotes()
         }
         return summary
-    
+
     def summary(self):
         text=(f"{self.page:3d}({self.name}):{self.title}")
         return text
-    
+
     def getMM(self,emu):
         # https://startbigthinksmall.wordpress.com/2010/01/04/points-inches-and-emus-measuring-units-in-office-open-xml/
         if emu is None:
             return 0
         else:
             return emu.mm
-    
+
     def getText4Shapes(self,shapes,yRange,runDelim:str=None):
         """
         get the text for the given shapes in the given yRange using the given
         run delimiter
-        
+
         Args:
             shapes:
             yRange:
@@ -102,40 +101,40 @@ class Slide(object):
         for shape in shapes:
             if not shape.has_text_frame:
                 continue
-            
+
             for paragraph in shape.text_frame.paragraphs:
                 for run in paragraph.runs:
                     line+=f"{delim}{run.text}"
                     delim=runDelim
-            
+
             y=self.getMM(shape.top)
             if y and YRange.isIn(yRange,y):
                 lines.append(line)
-            
+
             delim=""
             line=""
-        
-        if y and YRange.isIn(yRange,y):  
+
+        if y and YRange.isIn(yRange,y):
             lines.append(line)
             return lines
-    
+
     def getText(self,yRange=None):
         '''
         get the text in the given yRange
-        
+
         Args:
             yRange:
-            
+
         Return:
             str: the notes for this slide
         '''
         text=self.getText4Shapes(self.slide.shapes,yRange,runDelim=self.runDelim)
         return text
-    
+
     def getNotes(self,yRange=None,useShapes:bool=False)->str:
         """
         get the notes
-        
+
         Return:
             str: the notes for this slide
         """
@@ -147,14 +146,14 @@ class Slide(object):
             elif notes_slide.notes_text_frame:
                 text=notes_slide.notes_text_frame.text
         return text
-    
+
     def getLayoutName(self)->str:
         '''
         get the layoutName of this slide
         '''
         layoutName=self.slide.slide_layout.name
         return layoutName
-        
+
 
 class PPT(object):
     '''
@@ -173,7 +172,7 @@ class PPT(object):
         self.prs=None
         self.error=None
         self.slides=[]
-        
+
     def summary(self)->str:
         '''
         show a summary of the given lecture
@@ -186,36 +185,36 @@ class PPT(object):
             else:
                 summary=f"{self.title}/{self.author}/{self.created}  {self.basename}"
         return summary
-    
+
     def asDict(self)->dict:
         """
         convert me to a dict
-        
+
         Returns:
             dict: summary
         """
         if self.error:
             summary={"error":str(self.error),"path":self.filepath}
-        else:    
+        else:
             summary={"title":self.title,"author":self.author,"created":self.created,"path":self.filepath}
         return summary
-        
+
     def open(self):
         '''
         open my presentation
         '''
         try:
-            self.prs = Presentation(self.filepath)   
+            self.prs = Presentation(self.filepath)
             self.author=self.prs.core_properties.author
             self.created=self.prs.core_properties.created
             self.title=self.prs.core_properties.title
         except Exception as ex:
             self.error=ex
-            
+
     def getSlides(self, excludeHiddenSlides:bool=False,runDelim:str=None):
         '''
         get my slides
-        
+
         Args:
             excludeHiddenSlides(bool): if True exclude hidden Slides
         '''
@@ -245,41 +244,41 @@ class SlideWalker(object):
     def __init__(self, rootFolder:str, debug:bool=False):
         '''
         Constructor
-        
+
         Args:
             rootFolder(str): the path to the root folder of the analysis
             debug(bool): if True switch on debugging
         '''
         self.rootFolder=rootFolder
         self.debug=debug
-        
+
     def asCsv(self,listOfDicts:list,fieldNames:list=None)->str:
-        ''' convert the given list of dicts to CSV 
+        ''' convert the given list of dicts to CSV
         see https://stackoverflow.com/a/9157370/1497139
-        
+
         Args:
             listOfDicts(list): the table to convert
-            
+
         Returns:
             str: the CSV formated result
-        '''  
+        '''
         output=io.StringIO()
         if fieldNames is None:
             fieldNameSet=set()
             for record in listOfDicts:
                 for key in record.keys():
                     fieldNameSet.add(key)
-            fieldNames=list(fieldNameSet)        
+            fieldNames=list(fieldNameSet)
         writer=csv.DictWriter(output,fieldnames=fieldNames,quoting=csv.QUOTE_NONNUMERIC)
         writer.writeheader()
         for record in listOfDicts:
             writer.writerow(record)
         return output.getvalue()
-    
+
     def yieldPowerPointFiles(self,verbose:bool=False):
         """
         generate  my power point files
-        
+
         Args:
             verbose(bool): if True show information about the processing
         """
@@ -293,30 +292,30 @@ class SlideWalker(object):
             ppt.open()
             if not ppt.error:
                 yield ppt
-    
+
     def yieldSlides(self,ppt,verbose:bool, excludeHiddenSlides:bool=False, runDelim:str=None,slideDetails:bool=False):
         """
         yield all slides
-        
+
         Args:
             verbose(bool): if True print details on stdout
             excludeHiddenSlides(bool): If True hidden lecture will be excluded and also ignored in the page counting
-            runDelim(str): the delimiter to use for powerpoint slide text 
+            runDelim(str): the delimiter to use for powerpoint slide text
         """
         ppt.getSlides(excludeHiddenSlides=excludeHiddenSlides,runDelim=runDelim)
         for slide in ppt.slides:
             if verbose and slideDetails:
                 print(slide.summary())
             yield slide
-        
+
     def dumpInfo(self,outputFormat:str, excludeHiddenSlides:bool=False, runDelim:str=None, slideDetails:bool=False):
         '''
         dump information about the lecture in the given format
-        
+
         Args:
             outputFormat(str): csv, json or txt
             excludeHiddenSlides(bool): If True hidden lecture will be excluded and also ignored in the page counting
-            runDelim(str): the delimiter to use for powerpoint slide text 
+            runDelim(str): the delimiter to use for powerpoint slide text
         '''
         info={}
         csvRecords=[]
@@ -339,8 +338,8 @@ class SlideWalker(object):
             pptSummary["slides"]=slideSummary
             info[ppt.basename]=pptSummary
         if outputFormat=="json":
-            # 
-            # avoid the windows horror story 
+            #
+            # avoid the windows horror story
             # https://stackoverflow.com/questions/9233027/unicodedecodeerror-charmap-codec-cant-decode-byte-x-in-position-y-character
             # https://stackoverflow.com/a/18337754/1497139
             jsonStr=json.dumps(info,indent=2,default=str,ensure_ascii=False).encode('utf8')
@@ -351,11 +350,11 @@ class SlideWalker(object):
             print(csvText)
         elif outputFormat=="lod":
             return info
-        
+
     def dumpInfoToString(self,outputFormat:str, excludeHiddenSlides:bool=True):
         """
         dump information about the presentations in the given format
-        
+
         Args:
             outputFormat(str): csv, json or txt
             excludeHiddenSlides(bool): If True hidden lecture will be excluded and also ignored in the page counting
@@ -369,11 +368,11 @@ class SlideWalker(object):
     def findFiles(self,path:str,ext:str)->list:
         '''
         find Files with the given extension in the given path
-        
+
         Args:
             path(str): the path to start with
             ext(str): the extension to search for
-        
+
         Returns:
             list: a list of files found
         '''
@@ -390,7 +389,7 @@ def main(argv=None):
     main routine
     '''
     if argv is None:
-        argv = sys.argv   
+        argv = sys.argv
     program_name = os.path.basename(sys.argv[0])
     program_version_message = f'{program_name} (v{Version.version},{Version.updated})'
     try:
@@ -410,7 +409,7 @@ def main(argv=None):
         else:
             sw=SlideWalker(args.rootPath,args.debug)
             sw.dumpInfo(args.format,excludeHiddenSlides=not args.includeHidden,runDelim=args.runDelim)
-          
+
     except KeyboardInterrupt:
         ### handle keyboard interrupt ###
         return 1
@@ -420,7 +419,7 @@ def main(argv=None):
         sys.stderr.write(indent + "  for help use --help")
         if args.debug:
             print(traceback.format_exc())
-        return 2     
+        return 2
 
 if __name__ == "__main__":
     sys.exit(main())
