@@ -20,7 +20,7 @@ dependencies = [
 	# https://pypi.org/project/pyGenericSpreadSheet/
 	# 'pyGenericSpreadSheet',
 	# pyLoDStorage
-	'pyLoDStorage>=0.11.8',
+	'pyLoDStorage>=0.12.2',
 	# https://github.com/konradhalas/dacite
 	'dacite>=1.7.0',
 	# https://github.com/goldsmith/Wikipedia
