@@ -20,7 +20,7 @@ dependencies = [
 	# https://pypi.org/project/pyGenericSpreadSheet/
 	# 'pyGenericSpreadSheet',
 	# pyLoDStorage
-	'pyLoDStorage>=0.12.2',
+	'pyLoDStorage>=0.14.3',
 	# https://github.com/konradhalas/dacite
 	'dacite>=1.7.0',
 	# https://github.com/goldsmith/Wikipedia
@@ -37,15 +37,15 @@ dependencies = [
 	'pylatexenc'
 ]
 
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 classifiers=[
     "Development Status :: 4 - Beta",
     "Environment :: Web Environment",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Operating System :: OS Independent",
     "Topic :: Software Development :: User Interfaces",
     "Intended Audience :: Developers",
