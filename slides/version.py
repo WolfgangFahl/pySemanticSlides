@@ -3,11 +3,11 @@ Created on 2022-04-01
 
 @author: wf
 """
-
+from dataclasses import dataclass
 import slides
 
-
-class Version(object):
+@dataclass
+class Version:
     """
     Version handling for pysotsog
     """

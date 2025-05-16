@@ -76,3 +76,4 @@ only-include = ["slides"]
 [project.scripts]
 slidewalker = "slides.slidewalker:main"
 semslides = "slides.semslides:main"
+slidebrowser = "slides.slide_browser_cmd:main"
