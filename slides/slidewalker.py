@@ -302,38 +302,40 @@ class PPTSet:
             ppt = self.ppts_by_path.get(path)
         return ppt
 
-    def get_slides(self, path: str) -> List[Slide]:
+    def get_slides(self, path: str, relative: bool = False) -> dict[int, Slide]:
         """
-        Retrieve slides for a presentation at given path.
+        Retrieve slides for a presentation at given path, keyed by page number.
 
         Args:
             path (str): path to the presentation
+            relative (bool): if True, lookup by relpath; else, by full path
 
         Returns:
-            List[Slide]: list of slides from the presentation
+            dict[int, Slide]: map from page number to slide
         """
-        ppt = self.get_ppt(path)
-        slides = []
+        ppt = self.get_ppt(path, relative=relative)
+        slides_by_page: dict[int, Slide] = {}
         if ppt:
-            slides = ppt.getSlides()
-        return slides
+            for slide in ppt.getSlides():
+                slides_by_page[slide.page] = slide
+        return slides_by_page
 
-    def get_slide(self, path: str, page: int) -> Slide:
+    def get_slide(self, path: str, page: int, relative: bool = False) -> Slide:
         """
         Get a specific slide by its page number from a presentation.
 
         Args:
             path (str): path to the presentation
             page (int): 1-based page index
+            relative (bool): if True, lookup by relpath; else, by full path
 
         Returns:
-            Slide: the slide object
+            Slide: the slide object or None if not found
         """
-        slides = self.get_slides(path)
-        for slide in slides:
-            if slide.page == page:
-                return slide
-        return None
+        slides_by_page = self.get_slides(path, relative=relative)
+        slide = slides_by_page.get(page)
+        return slide
+
 
     def as_lod(self) -> List[dict]:
         """

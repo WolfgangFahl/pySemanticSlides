@@ -154,9 +154,35 @@ class SlidesViewer(GridViewer):
             self.delim = ", "
             for slide in slides:
                 slide_record = slide.asDict()
+                slide_record["path"]=ppt.relpath
                 self.lod.append(slide_record)
+
+    def to_view_lod(self):
+        """
+        add links to slide detail view
+        """
+        super().to_view_lod()
+        for record in self.view_lod:
+            path = record["path"]
+            page = record["page"]
+            slide = self.ppt_set.get_slide(path, page, relative=True)
+            if slide:
+                url = f"/slide/{path}/{page}"
+                name = slide.name
+                record["name"] = Link.create(url, name)
+                ppt=slide.ppt
+                url = f"/slides/{ppt.relpath}"
+                record["path"] = Link.create(url, ppt.basename)
+            else:
+                self.solution.logger.error(f"Slide not found: path={path}, page={page}")
+            record.move_to_end("path", last=False)
+            record.move_to_end("name", last=False)
+            record.move_to_end("#", last=False)
         pass
 
+    async def load_and_render(self,grid_row):
+        self.load_lod()
+        await self.render_view_lod(grid_row)
 
 class PresentationsViewer(GridViewer):
     """
@@ -224,7 +250,7 @@ class PresentationsViewer(GridViewer):
         if not selected:
             ui.notify("No presentations selected")
             return
-        background_tasks.create(self.show_selected_slides(selected))
+        await self.show_selected_slides(selected)
 
     async def show_selected_slides(self, selected: List[dict]):
         """
@@ -247,9 +273,7 @@ class PresentationsViewer(GridViewer):
             ppts.append(ppt)
         with self.slide_grid_row:
             self.slide_viewer = SlidesViewer(self.solution, ppts)
-            self.slide_viewer.load_lod()
-            await self.slide_viewer.render_view_lod(self.slide_grid_row)
-
+            background_tasks.create(self.slide_viewer.load_and_render(self.slide_grid_row))
 
 class SlideDetailViewer:
     """
@@ -265,7 +289,6 @@ class SlideDetailViewer:
             slide:Slide
         """
         self.solution = solution
-        self.slidewalker = solution.slidewalker
         self.slide = slide
 
     def render(self):

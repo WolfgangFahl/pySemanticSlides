@@ -7,8 +7,7 @@ Created on 2025-05-16
 import os
 
 from ngwidgets.input_webserver import InputWebserver, InputWebSolution, WebserverConfig
-from nicegui import Client, ui
-
+from nicegui import Client, ui, background_tasks
 from slides.slide_viewer import PresentationsViewer, SlideDetailViewer, SlidesViewer
 from slides.slidewalker import PPTSet, SlideWalker
 from slides.version import Version
@@ -52,7 +51,7 @@ class SlideBrowserWebserver(InputWebserver):
             presentation_path: str, slide_index: int, client: Client
         ):
             return await self.page(
-                client, SlideBrowser.show_slide_detail, presentation_path, slide_index
+                client, SlideBrowser.show_slide, presentation_path, slide_index
             )
 
     def configure_run(self):
@@ -84,16 +83,22 @@ class SlideBrowser(InputWebSolution):
         self.ppt_set = self.webserver.ppt_set
 
     async def show_slide(self, path: str, page: int):
+        """
+        Show the given slide.
+        """
         def show():
             try:
-                ppt = self.ppt_set.get_ppt(path)
-                slide = ppt.getSlides()[page - 1]
-                viewer = SlideDetailViewer(self, slide)
-                viewer.render()
+                slide = self.ppt_set.get_slide(path, page, relative=True)
+                if slide:
+                    viewer = SlideDetailViewer(self, slide)
+                    viewer.render()
+                else:
+                    ui.label(f"Slide {page} not found in {path}")
             except Exception as ex:
                 self.handle_exception(ex)
 
         await self.setup_content_div(show)
+
 
     async def show_slides(self, presentation_path: str):
         """
@@ -108,17 +113,14 @@ class SlideBrowser(InputWebSolution):
                 if not ppt:
                     ui.label(f"no such path {presentation_path}")
                     return
-
-                self.slides_viewer = SlidesViewer(solution=self, ppts=[ppt])
-                self.slides_viewer.load_lod()
-                self.slides_viewer.setup_search()
                 self.grid_row = ui.row()
+                self.slides_viewer = SlidesViewer(solution=self, ppts=[ppt])
 
             except Exception as ex:
                 self.handle_exception(ex)
 
         await self.setup_content_div(show)
-        await self.slides_viewer.render_view_lod(grid_row=self.grid_row)
+        background_tasks.create(self.slides_viewer.load_and_render(self.grid_row))
 
 
     def show_presentations(self):
