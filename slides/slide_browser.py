@@ -8,8 +8,8 @@ import os
 
 from ngwidgets.input_webserver import InputWebserver, InputWebSolution, WebserverConfig
 from nicegui import Client, ui
-
 from slides.slide_viewer import PresentationsViewer
+from slides.slidewalker import SlideWalker, PPTSet
 from slides.version import Version
 
 
@@ -37,6 +37,17 @@ class SlideBrowserWebserver(InputWebserver):
         constructor
         """
         super().__init__(config=SlideBrowserWebserver.get_config())
+        @ui.page("/presentations")
+        async def presentations(client: Client):
+            return await self.page(client, SlideBrowser.show_presentations)
+
+        @ui.page("/slides/{presentation_path:path}")
+        async def slides(presentation_path: str, client: Client):
+            return await self.page(client, SlideBrowser.show_slides, presentation_path)
+
+        @ui.page("/slide/{presentation_path:path}/{slide_index}")
+        async def slide_detail(presentation_path: str, slide_index: int, client: Client):
+            return await self.page(client, SlideBrowser.show_slide_detail, presentation_path, slide_index)
 
     def configure_run(self):
         root_path = self.args.slide_path
@@ -53,6 +64,8 @@ class SlideBrowser(InputWebSolution):
 
     def __init__(self, webserver: SlideBrowserWebserver, client: Client):
         super().__init__(webserver, client)
+        self.slidewalker = SlideWalker(self.webserver.root_path)
+        self.ppt_set=PPTSet(self.slidewalker)
 
     def prepare_ui(self):
         anchor_style = r"a:link, a:visited {color: inherit !important; text-decoration: none; font-weight: 500}"

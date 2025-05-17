@@ -5,23 +5,23 @@ Created on 2022-04-07
 """
 
 import argparse
+from collections import OrderedDict
+from contextlib import redirect_stdout
 import csv
+from io import StringIO
 import io
 import json
 import os
 import sys
 import traceback
+from typing import List
 import webbrowser
-from collections import OrderedDict
-from contextlib import redirect_stdout
-from io import StringIO
 
-# https://stackoverflow.com/a/70631361/1497139
 from pptx import Presentation
-
 from slides.version import Version
 
 
+# https://stackoverflow.com/a/70631361/1497139
 class YRange:
     """
     an Y Range
@@ -224,6 +224,13 @@ class PPT(object):
         except Exception as ex:
             self.error = ex
 
+    def open_in_office(self):
+        """
+        open me in the configure office environment
+        """
+        os.system(f"open {self.filepath}")  # MacOS – adjust for platform
+
+
     def getSlides(self, excludeHiddenSlides: bool = False, runDelim: str = None):
         """
         get my slides
@@ -251,6 +258,89 @@ class PPT(object):
                 self.slides.append(pptSlide)
         return self.slides
 
+class PPTSet:
+    """
+    A set of PowerPoint presentations loaded via a SlideWalker.
+    Provides lookup and caching support.
+    """
+
+    def __init__(self, slidewalker: "SlideWalker", verbose: bool = False):
+        self.slidewalker = slidewalker
+        self.verbose = verbose
+        self.ppts: dict[str, PPT] = {}
+
+    def load(self):
+        """
+        Load presentations using the configured SlideWalker.
+        """
+        for ppt in self.slidewalker.yieldPowerPointFiles(verbose=self.verbose):
+            self.ppts[ppt.filepath] = ppt
+
+    def get_ppt(self, path: str) -> PPT:
+        """
+        Retrieve a single presentation by path.
+
+        Args:
+            path (str): the relative or absolute file path to the presentation
+
+        Returns:
+            PPT: the PowerPoint presentation
+        """
+        ppt = self.ppts.get(path)
+        if ppt is None:
+            # fallback to file system lookup if not cached
+            abs_path = os.path.join(self.slidewalker.rootFolder, path)
+            if os.path.isfile(abs_path):
+                ppt = PPT(abs_path)
+                ppt.open()
+                self.ppts[path] = ppt
+        return ppt
+
+    def get_slides(self, path: str) -> List[Slide]:
+        """
+        Retrieve slides for a presentation at given path.
+
+        Args:
+            path (str): path to the presentation
+
+        Returns:
+            List[Slide]: list of slides from the presentation
+        """
+        ppt = self.get_ppt(path)
+        slides=[]
+        if ppt:
+            slides= ppt.getSlides()
+        return slides
+
+    def get_slide(self, path: str, page: int) -> Slide:
+        """
+        Get a specific slide by its page number from a presentation.
+
+        Args:
+            path (str): path to the presentation
+            page (int): 1-based page index
+
+        Returns:
+            Slide: the slide object
+        """
+        slides = self.get_slides(path)
+        for slide in slides:
+            if slide.page == page:
+                return slide
+        return None
+
+    def as_lod(self) -> List[dict]:
+        """
+        Return list of dicts representing all presentations.
+
+        Returns:
+            List[dict]: list of dicts with presentation metadata
+        """
+        lod = []
+        for ppt in self.ppts.values():
+            record = ppt.asDict()
+            lod.append(record)
+        return lod
 
 class SlideWalker(object):
     """

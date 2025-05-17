@@ -3,16 +3,15 @@ Created on 2025-05-16
 
 @author: wf
 """
-
 from collections import OrderedDict
+import os
 from typing import List
 
 from ngwidgets.input_webserver import InputWebSolution
 from ngwidgets.lod_grid import GridConfig, ListOfDictsGrid
 from ngwidgets.widgets import Link
 from nicegui import background_tasks, ui
-
-from slides.slidewalker import Presentation, SlideWalker
+from slides.slidewalker import Presentation, SlideWalker, Slide, PPT
 
 
 class GridViewer:
@@ -93,20 +92,21 @@ class SlideViewer(GridViewer):
     Shows slides of one or more PowerPoint presentations
     """
 
-    def __init__(self, ppts: List[Presentation], solution: InputWebSolution):
+    def __init__(self, solution: InputWebSolution, ppts: List[PPT]):
         """
         Initialize the SlideViewer.
 
         Args:
-            ppts (List[Presentation]): the list of PowerPoint presentations
             solution (InputWebSolution): the UI solution context
+            ppts (List[PPT]): selected presentations to show slides for
         """
-        super().__init__(solution,"page")
+        super().__init__(solution, "page")
         self.ppts = ppts
+        self.ppt_set = solution.ppt_set
 
     def load_lod(self):
         """
-        Load slide data from the list of presentations
+        Load slide data from the given presentations
         """
         self.reset_lod()
         for ppt in self.ppts:
@@ -130,16 +130,15 @@ class PresentationsViewer(GridViewer):
             solution (InputWebSolution): the UI solution context
         """
         super().__init__(solution,"path")
-        self.ppts = {}
+        self.ppt_set=solution.ppt_set
         self.slide_viewer=None
 
     def setup_ui(self):
         """
         Set up UI controls and layout
         """
-        self.slidewalker = SlideWalker(self.solution.webserver.root_path)
         with ui.row() as self.header_row:
-            ui.label(self.slidewalker.rootFolder)
+            ui.label(self.ppt_set.slidewalker.rootFolder)
             ui.button("walk", on_click=self.on_walk)
             ui.button("show slides", on_click=self.on_show_slides)
         # unfortunately does not work
@@ -158,7 +157,7 @@ class PresentationsViewer(GridViewer):
         super().to_view_lod()
         for record in self.view_lod:
             path=record["path"]
-            ppt=self.ppts.get(path)
+            ppt=self.ppt_set.get_ppt(path)
             url = f"{self.solution.webserver.root_path}/{path}"
             record["path"] = Link.create(url,ppt.basename)
 
@@ -174,10 +173,8 @@ class PresentationsViewer(GridViewer):
         Load available presentation metadata
         """
         self.reset_lod()
-        for ppt in self.slidewalker.yieldPowerPointFiles(verbose=True):
-            record = ppt.asDict()
-            self.ppts[ppt.filepath] = ppt
-            self.lod.append(record)
+        self.ppt_set.load()
+        self.lod=self.ppt_set.as_lod()
 
     async def on_show_slides(self):
         """
@@ -206,9 +203,34 @@ class PresentationsViewer(GridViewer):
             row=self.lod[ri]
             path=row.get("path")
             if path:
-                ppt=self.ppts.get(path)
+                ppt=self.ppt_set.get_ppt(path)
             ppts.append(ppt)
         with self.slide_grid_row:
-            self.slide_viewer = SlideViewer(ppts, self.solution)
+            self.slide_viewer = SlideViewer(self.solution,ppts)
             self.slide_viewer.load_lod()
             await self.slide_viewer.render_view_lod(self.slide_grid_row)
+
+class SlideDetailViewer:
+    """
+    a single slide
+    """
+    def __init__(self, solution: InputWebSolution, slide:Slide):
+        """
+        Initialize the SlideDetailViewer.
+
+        Args:
+            solution (InputWebSolution): the UI solution context
+            slide:Slide
+        """
+        self.solution=solution
+        self.slidewalker=solution.slidewalker
+        self.slide = slide
+
+    def render(self):
+        with ui.card():
+            ui.label(f"{self.slide.title}")
+            ui.html(f"<pre>{self.slide.getText()}</pre>")
+            ui.button("Open", on_click=lambda: self.open_in_office())
+
+    def open_in_office(self):
+        self.slide.ppt.open_in_office()
