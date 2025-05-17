@@ -3,8 +3,11 @@ Created on 2022-04-01
 
 @author: wf
 """
+
 from dataclasses import dataclass
+
 import slides
+
 
 @dataclass
 class Version:

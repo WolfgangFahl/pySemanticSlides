@@ -4,119 +4,203 @@ Created on 2025-05-16
 @author: wf
 """
 
-from ngwidgets.lod_grid import ListOfDictsGrid, GridConfig
-from slides.slidewalker import SlideWalker
-from nicegui import ui
+from collections import OrderedDict
+from typing import List
 
-class SlideViewer:
+from ngwidgets.input_webserver import InputWebSolution
+from ngwidgets.lod_grid import GridConfig, ListOfDictsGrid
+from ngwidgets.widgets import Link
+from nicegui import background_tasks, ui
+
+from slides.slidewalker import Presentation, SlideWalker
+
+
+class GridViewer:
     """
-    Shows slides of a single PowerPoint presentation
+    Base class for grid-based viewers using ListOfDictsGrid
     """
 
-    def __init__(self, ppt, solution):
-        self.ppt = ppt
+    def __init__(self, solution: InputWebSolution, key_col:str):
+        """
+        Initialize the GridViewer with a UI solution.
+
+        Args:
+            solution (InputWebSolution): the web solution providing the content_div for rendering
+        """
         self.solution = solution
-        self.lod = []
+        self.key_col=key_col
         self.grid = None
-        self.load_slides()
-        self.show_slides()
+        self.reset_lod()
 
-    def load_slides(self):
+    def reset_lod(self):
         """
-        Load slide data from the PPT instance
+        Reset the logical and view layer data and summary state
         """
-        self.lod = []
-        slides = self.ppt.getSlides()
-        for slide in slides:
-            slide_record = slide.asDict()
-            self.lod.append(slide_record)
+        self.lod: List[dict] = []
+        self.view_lod: List[dict] = []
+        self.summary: str = ""
+        self.delim: str = ""
 
-    def show_slides(self):
+    def to_view_lod(self):
         """
-        Display slides in a grid
+        Create view layer data with key_col first and sorted by key_col.
+        """
+        self.view_lod = []
+        self.html_columns=[]
+        for ri,record in enumerate(self.lod):
+            view_record = OrderedDict(record)
+            view_record["#"]=ri
+            view_record.move_to_end(self.key_col, last=False)
+            self.view_lod.append(record)
+            # use the first record to set the html_columns
+            if ri==0:
+                for vi,_k in enumerate(view_record.keys()):
+                    self.html_columns.append(vi)
+        self.view_lod.sort(key=lambda r: r.get(self.key_col))
+
+
+    def render_grid(self):
+        """
+        Render the view_lod into a ListOfDictsGrid
+
         """
         grid_config = GridConfig(
-            key_col="page",
+            key_col=self.key_col,
             editable=False,
-            multiselect=False,
+            multiselect=True,
             with_buttons=False,
         )
         with self.solution.content_div:
-            ui.label(f"Slides from {self.ppt.basename}")
-            self.grid = ListOfDictsGrid(lod=self.lod, config=grid_config)
-            self.grid.ag_grid._props["html_columns"] = [0, 1, 2]
+            ui.label(f"{self.summary}")
+            self.grid = ListOfDictsGrid(lod=self.view_lod, config=grid_config)
+            self.grid.ag_grid._props["html_columns"] = self.html_columns
+            self.grid.set_checkbox_selection(self.key_col)
 
-class PresentationsViewer:
+    def load_lod(self):
+        """
+        abstract data loading - needs to be overridden
+        """
+        raise Exception("abstract load_lod called")
+
+    def render_view_lod(self):
+        self.to_view_lod()
+        self.render_grid()
+
+
+class SlideViewer(GridViewer):
     """
-    Presentations viewer for PowerPoint presentations
+    Shows slides of one or more PowerPoint presentations
     """
 
-    def __init__(self, solution):
-        self.solution = solution
-        self.grid = None
-        self.ppts={}
-        self.lod = []
-        self.view_lod= []
-        self.grid=None
+    def __init__(self, ppts: List[Presentation], solution: InputWebSolution):
+        """
+        Initialize the SlideViewer.
+
+        Args:
+            ppts (List[Presentation]): the list of PowerPoint presentations
+            solution (InputWebSolution): the UI solution context
+        """
+        super().__init__(solution,"page")
+        self.ppts = ppts
+
+    def load_lod(self):
+        """
+        Load slide data from the list of presentations
+        """
+        self.reset_lod()
+        for ppt in self.ppts:
+            slides = ppt.getSlides()
+            self.summary += f"{self.delim}{ppt.basename}({len(slides)})"
+            self.delim = ", "
+            for slide in slides:
+                slide_record = slide.asDict()
+                self.lod.append(slide_record)
+
+class PresentationsViewer(GridViewer):
+    """
+    Viewer for available presentations
+    """
+
+    def __init__(self, solution: InputWebSolution):
+        """
+        Initialize the PresentationsViewer.
+
+        Args:
+            solution (InputWebSolution): the UI solution context
+        """
+        super().__init__(solution,"path")
+        self.ppts = {}
+        self.slide_viewer=None
 
     def setup_ui(self):
         """
-        Set up the UI using ngwidgets
+        Set up UI controls and layout
         """
-        root_path = self.solution.webserver.root_path
-        self.slidewalker = SlideWalker(root_path)
+        self.slidewalker = SlideWalker(self.solution.webserver.root_path)
         with ui.row() as self.header_row:
-            self.path_label=ui.label(root_path)
-            self.walk_button = ui.button("walk", on_click=self.on_walk)
-        #self.expansion = ui.expansion("Presentations", icon="slideshow", value=True)
-        #with self.expansion:
-        self.grid_row=ui.row()
-        self.slide_grid_row=ui.row()
-
+            ui.label(self.slidewalker.rootFolder)
+            ui.button("walk", on_click=self.on_walk)
+            ui.button("show slides", on_click=self.on_show_slides)
+        self.grid_row = ui.row()
+        self.slide_grid_row = ui.row()
 
     async def on_walk(self):
-        self.load_data()
+        background_tasks.create(self.load_and_show_presentations())
 
-    def load_data(self):
+    def to_view_lod(self):
         """
-        Load slide metadata as LOD
+        make path clickable
         """
+        super().to_view_lod()
+        for record in self.view_lod:
+            url = f"{self.solution.webserver.root_path}/{record['path']}"
+            record["path"] = Link.create(url, record["path"])
+
+    async def load_and_show_presentations(self):
+        try:
+            self.load_lod()
+            self.render_view_lod()
+        except Exception as ex:
+            self.solution.handle_exception(ex)
+
+    def load_lod(self):
+        """
+        Load available presentation metadata
+        """
+        self.reset_lod()
         for ppt in self.slidewalker.yieldPowerPointFiles(verbose=True):
             record = ppt.asDict()
-            self.ppts[ppt.filepath]=ppt
+            self.ppts[ppt.filepath] = ppt
             self.lod.append(record)
-        if self.grid is None:
-            self.setup_grid()
-        else:
-            self.grid.load_lod(self.lod)
 
-    def setup_grid(self):
+    async def on_show_slides(self):
         """
-        Setup the grid UI element
+        Load selected presentations and display their slides
         """
-        grid_config = GridConfig(
-            key_col="path",
-            editable=False,
-            multiselect=False,
-            with_buttons=False,
-        )
-        with self.grid_row:
-            self.grid = ListOfDictsGrid(lod=self.lod, config=grid_config)
-            self.grid.ag_grid._props["html_columns"] = [0, 1, 2]
-            self.grid.ag_grid.on("cellDoubleClicked", self.on_double_click)
+        selected = await self.grid.get_selected_rows()
+        if not selected:
+            ui.notify("No presentations selected")
+            return
+        background_tasks.create(self.show_selected_slides(selected))
 
+    async def show_selected_slides(self, selected: List[dict]):
+        """
+        Load and display slides from the selected presentations.
 
-    def on_double_click(self, event):
+        Args:
+            selected (List[dict]): selected rows from the presentation list
         """
-        Handle double-click on a row
-        """
-        row_data = event.args.get("data")
-        if row_data:
-            path = row_data.get("path")
-            ui.notify(f"Double-clicked: {row_data.get('title', row_data)}")
+        self.slide_grid_row.clear()
+        ppts = []
+        for r in selected:
+            # magic view to data retranslation
+            ri=r.get("#")
+            row=self.lod[ri]
+            path=row.get("path")
             if path:
-                ppt = self.ppts[path]
-                #self.expansion.value = False  # collapse presentation list
-                self.slide_grid_row.clear()
-                with self.slide_grid_row:
-                    SlideViewer(ppt, self.solution)
+                ppt=self.ppts.get(path)
+            ppts.append(ppt)
+        self.slide_viewer = SlideViewer(ppts, self.solution)
+        self.slide_viewer.load_lod()
+        with self.slide_grid_row:
+            self.slide_viewer.render_view_lod()

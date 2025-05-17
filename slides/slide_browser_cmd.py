@@ -8,6 +8,7 @@ import sys
 from argparse import ArgumentParser
 
 from ngwidgets.cmd import WebserverCmd
+
 from slides.slide_browser import SlideBrowserWebserver
 
 
