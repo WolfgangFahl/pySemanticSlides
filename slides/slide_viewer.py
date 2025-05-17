@@ -20,7 +20,7 @@ class GridViewer:
     Base class for grid-based viewers using ListOfDictsGrid
     """
 
-    def __init__(self, solution: InputWebSolution, key_col:str):
+    def __init__(self, solution: InputWebSolution, key_col:str,html_columns:List[int]=[1]):
         """
         Initialize the GridViewer with a UI solution.
 
@@ -30,6 +30,7 @@ class GridViewer:
         self.solution = solution
         self.key_col=key_col
         self.grid = None
+        self.html_columns=html_columns
         self.reset_lod()
 
     def reset_lod(self):
@@ -46,23 +47,22 @@ class GridViewer:
         Create view layer data with key_col first and sorted by key_col.
         """
         self.view_lod = []
-        self.html_columns=[]
         for ri,record in enumerate(self.lod):
             view_record = OrderedDict(record)
-            view_record["#"]=ri
             view_record.move_to_end(self.key_col, last=False)
+            view_record["#"]=ri
+            view_record.move_to_end("#", last=False)
             self.view_lod.append(view_record)
-            # use the first record to set the html_columns
-            if ri==0:
-                for vi,_k in enumerate(view_record.keys()):
-                    self.html_columns.append(vi)
         self.view_lod.sort(key=lambda r: r.get(self.key_col))
+        pass
 
 
-    async def render_grid(self):
+    async def render_grid(self,grid_row):
         """
         Render the view_lod into a ListOfDictsGrid
 
+        Args:
+            grid_row: the container row where the grid should be rendered
         """
         grid_config = GridConfig(
             key_col=self.key_col,
@@ -70,7 +70,7 @@ class GridViewer:
             multiselect=True,
             with_buttons=False,
         )
-        with self.solution.content_div:
+        with grid_row:
             if self.summary:
                 ui.label(f"{self.summary}")
             self.grid = ListOfDictsGrid(lod=self.view_lod, config=grid_config)
@@ -83,9 +83,9 @@ class GridViewer:
         """
         raise Exception("abstract load_lod called")
 
-    async def render_view_lod(self):
+    async def render_view_lod(self,grid_row):
         self.to_view_lod()
-        await self.render_grid()
+        await self.render_grid(grid_row)
 
 
 class SlideViewer(GridViewer):
@@ -142,6 +142,9 @@ class PresentationsViewer(GridViewer):
             ui.label(self.slidewalker.rootFolder)
             ui.button("walk", on_click=self.on_walk)
             ui.button("show slides", on_click=self.on_show_slides)
+        # unfortunately does not work
+        #self.expansion = ui.expansion("Presentations", icon="slideshow", value=True)
+        #with self.expansion:
         self.grid_row = ui.row()
         self.slide_grid_row = ui.row()
 
@@ -154,13 +157,15 @@ class PresentationsViewer(GridViewer):
         """
         super().to_view_lod()
         for record in self.view_lod:
-            url = f"{self.solution.webserver.root_path}/{record['path']}"
-            record["path"] = Link.create(url, record["path"])
+            path=record["path"]
+            ppt=self.ppts.get(path)
+            url = f"{self.solution.webserver.root_path}/{path}"
+            record["path"] = Link.create(url,ppt.basename)
 
     async def load_and_show_presentations(self):
         try:
             self.load_lod()
-            await self.render_view_lod()
+            await self.render_view_lod(self.grid_row)
         except Exception as ex:
             self.solution.handle_exception(ex)
 
@@ -192,6 +197,8 @@ class PresentationsViewer(GridViewer):
             selected (List[dict]): selected rows from the presentation list
         """
         self.slide_grid_row.clear()
+        # unfortunately does not work
+        #self.expansion.value = False
         ppts = []
         for r in selected:
             # magic view to data retranslation
@@ -201,7 +208,7 @@ class PresentationsViewer(GridViewer):
             if path:
                 ppt=self.ppts.get(path)
             ppts.append(ppt)
-        self.slide_viewer = SlideViewer(ppts, self.solution)
-        self.slide_viewer.load_lod()
         with self.slide_grid_row:
-            await self.slide_viewer.render_view_lod()
+            self.slide_viewer = SlideViewer(ppts, self.solution)
+            self.slide_viewer.load_lod()
+            await self.slide_viewer.render_view_lod(self.slide_grid_row)
