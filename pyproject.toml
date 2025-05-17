@@ -19,6 +19,8 @@ dependencies = [
 	'python-pptx',
 	# https://pypi.org/project/pyGenericSpreadSheet/
 	# 'pyGenericSpreadSheet',
+	# https://github.com/WolfgangFahl/nicegui_widgets
+	'ngwidgets>=0.23.0',
 	# pyLoDStorage
 	'pyLoDStorage>=0.14.3',
 	# https://github.com/konradhalas/dacite
