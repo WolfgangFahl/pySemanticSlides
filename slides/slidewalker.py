@@ -5,19 +5,21 @@ Created on 2022-04-07
 """
 
 import argparse
-from collections import OrderedDict
-from contextlib import redirect_stdout
 import csv
-from io import StringIO
 import io
 import json
 import os
 import sys
 import traceback
-from typing import List
 import webbrowser
+from collections import OrderedDict
+from contextlib import redirect_stdout
+from io import StringIO
+from typing import List
 
 from pptx import Presentation
+from tqdm import tqdm
+
 from slides.version import Version
 
 
@@ -230,7 +232,6 @@ class PPT(object):
         """
         os.system(f"open {self.filepath}")  # MacOS – adjust for platform
 
-
     def getSlides(self, excludeHiddenSlides: bool = False, runDelim: str = None):
         """
         get my slides
@@ -258,6 +259,7 @@ class PPT(object):
                 self.slides.append(pptSlide)
         return self.slides
 
+
 class PPTSet:
     """
     A set of PowerPoint presentations loaded via a SlideWalker.
@@ -267,33 +269,37 @@ class PPTSet:
     def __init__(self, slidewalker: "SlideWalker", verbose: bool = False):
         self.slidewalker = slidewalker
         self.verbose = verbose
-        self.ppts: dict[str, PPT] = {}
+        self.ppts_by_path: dict[str, PPT] = {}
+        self.ppts_by_relpath: dict[str, PPT] = {}
 
-    def load(self):
+    def load(self, with_progress: bool = False):
         """
         Load presentations using the configured SlideWalker.
-        """
-        for ppt in self.slidewalker.yieldPowerPointFiles(verbose=self.verbose):
-            self.ppts[ppt.filepath] = ppt
 
-    def get_ppt(self, path: str) -> PPT:
+        Args:
+            with_progress(bool): If True, show a tqdm progress bar.
+        """
+        ppt_iter = self.slidewalker.yieldPowerPointFiles(verbose=self.verbose)
+        iterator = tqdm(ppt_iter, desc="Loading PPTs") if with_progress else ppt_iter
+        for ppt in iterator:
+            self.ppts_by_path[ppt.filepath] = ppt
+            self.ppts_by_relpath[ppt.relpath] = ppt
+
+    def get_ppt(self, path: str, relative: bool = False) -> PPT:
         """
         Retrieve a single presentation by path.
 
         Args:
             path (str): the relative or absolute file path to the presentation
+            relative (bool): if True, lookup by relpath; else, by full path
 
         Returns:
-            PPT: the PowerPoint presentation
+            PPT: the PowerPoint presentation or None if not loaded
         """
-        ppt = self.ppts.get(path)
-        if ppt is None:
-            # fallback to file system lookup if not cached
-            abs_path = os.path.join(self.slidewalker.rootFolder, path)
-            if os.path.isfile(abs_path):
-                ppt = PPT(abs_path)
-                ppt.open()
-                self.ppts[path] = ppt
+        if relative:
+            ppt = self.ppts_by_relpath.get(path)
+        else:
+            ppt = self.ppts_by_path.get(path)
         return ppt
 
     def get_slides(self, path: str) -> List[Slide]:
@@ -307,9 +313,9 @@ class PPTSet:
             List[Slide]: list of slides from the presentation
         """
         ppt = self.get_ppt(path)
-        slides=[]
+        slides = []
         if ppt:
-            slides= ppt.getSlides()
+            slides = ppt.getSlides()
         return slides
 
     def get_slide(self, path: str, page: int) -> Slide:
@@ -337,10 +343,11 @@ class PPTSet:
             List[dict]: list of dicts with presentation metadata
         """
         lod = []
-        for ppt in self.ppts.values():
+        for ppt in self.ppts_by_path.values():
             record = ppt.asDict()
             lod.append(record)
         return lod
+
 
 class SlideWalker(object):
     """
@@ -396,7 +403,9 @@ class SlideWalker(object):
         for pptxFile in pptxFiles:
             if verbose:
                 print(f"Extracting data from {pptxFile}")
-            ppt = PPT(pptxFile)
+            ppt = PPT(pptxFile, self.rootFolder)
+            relpath = os.path.relpath(ppt.filepath, self.rootFolder)
+            ppt.relpath = relpath
             ppt.open()
             if not ppt.error:
                 yield ppt

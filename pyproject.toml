@@ -36,7 +36,9 @@ dependencies = [
 	# https://pypi.org/project/bibtexparser/
 	'bibtexparser',
 	# https://github.com/phfaist/pylatexenc/
-	'pylatexenc'
+	'pylatexenc',
+	 # https://pypi.org/project/tqdm/
+  	"tqdm>=4.66.5"
 ]
 
 requires-python = ">=3.10"

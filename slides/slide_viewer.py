@@ -3,15 +3,16 @@ Created on 2025-05-16
 
 @author: wf
 """
+
 from collections import OrderedDict
-import os
 from typing import List
 
 from ngwidgets.input_webserver import InputWebSolution
 from ngwidgets.lod_grid import GridConfig, ListOfDictsGrid
 from ngwidgets.widgets import Link
 from nicegui import background_tasks, ui
-from slides.slidewalker import Presentation, SlideWalker, Slide, PPT
+
+from slides.slidewalker import PPT, Slide
 
 
 class GridViewer:
@@ -19,18 +20,54 @@ class GridViewer:
     Base class for grid-based viewers using ListOfDictsGrid
     """
 
-    def __init__(self, solution: InputWebSolution, key_col:str,html_columns:List[int]=[1]):
+    def __init__(
+        self,
+        solution: InputWebSolution,
+        key_col: str,
+        search_cols: List[str] = None,
+        html_columns: List[int] = [1],
+    ):
         """
         Initialize the GridViewer with a UI solution.
 
         Args:
             solution (InputWebSolution): the web solution providing the content_div for rendering
+            key_col (str): the primary column key used for sorting and selection
+            search_cols (List[str], optional): list of column names to be searched via the search UI; defaults to all columns
+            html_columns (List[int], optional): list of column indices rendered as HTML; defaults to [1]
         """
         self.solution = solution
-        self.key_col=key_col
+        self.debug = self.solution.debug
+        self.key_col = key_col
         self.grid = None
-        self.html_columns=html_columns
+        self.html_columns = html_columns
         self.reset_lod()
+        self.search_cols = search_cols
+        self.search_text = ""
+
+    def setup_search(self):
+        ui.input(label="Search", placeholder="search ...").bind_value(
+            self, "search_text"
+        )
+        ui.button("Search", on_click=self.on_search_click)
+
+    async def on_search_click(self):
+        msg = f"searching {self.search_text}"
+        ui.notify(msg)
+        if not self.grid or not self.search_text.strip():
+            return
+        search_lower = self.search_text.strip().lower()
+        matched_keys = []
+        columns = (
+            self.search_cols or list(self.view_lod[0].keys()) if self.view_lod else []
+        )
+        for row in self.lod:
+            for col in columns:
+                val = row.get(col)
+                if isinstance(val, str) and search_lower in val.lower():
+                    matched_keys.append(row[self.key_col])
+                    break
+        self.grid.select_rows(matched_keys)
 
     def reset_lod(self):
         """
@@ -46,17 +83,16 @@ class GridViewer:
         Create view layer data with key_col first and sorted by key_col.
         """
         self.view_lod = []
-        for ri,record in enumerate(self.lod):
+        for ri, record in enumerate(self.lod):
             view_record = OrderedDict(record)
             view_record.move_to_end(self.key_col, last=False)
-            view_record["#"]=ri
+            view_record["#"] = ri
             view_record.move_to_end("#", last=False)
             self.view_lod.append(view_record)
         self.view_lod.sort(key=lambda r: r.get(self.key_col))
         pass
 
-
-    async def render_grid(self,grid_row):
+    async def render_grid(self, grid_row):
         """
         Render the view_lod into a ListOfDictsGrid
 
@@ -65,13 +101,16 @@ class GridViewer:
         """
         grid_config = GridConfig(
             key_col=self.key_col,
-            editable=False,
+            editable=True,
             multiselect=True,
-            with_buttons=False,
+            with_buttons=True,
+            button_names=["all", "fit"],
+            debug=self.debug,
         )
         with grid_row:
             if self.summary:
                 ui.label(f"{self.summary}")
+            self.setup_search()
             self.grid = ListOfDictsGrid(lod=self.view_lod, config=grid_config)
             self.grid.ag_grid._props["html_columns"] = self.html_columns
             self.grid.set_checkbox_selection(self.key_col)
@@ -82,12 +121,12 @@ class GridViewer:
         """
         raise Exception("abstract load_lod called")
 
-    async def render_view_lod(self,grid_row):
+    async def render_view_lod(self, grid_row):
         self.to_view_lod()
         await self.render_grid(grid_row)
 
 
-class SlideViewer(GridViewer):
+class SlidesViewer(GridViewer):
     """
     Shows slides of one or more PowerPoint presentations
     """
@@ -116,6 +155,8 @@ class SlideViewer(GridViewer):
             for slide in slides:
                 slide_record = slide.asDict()
                 self.lod.append(slide_record)
+        pass
+
 
 class PresentationsViewer(GridViewer):
     """
@@ -129,9 +170,9 @@ class PresentationsViewer(GridViewer):
         Args:
             solution (InputWebSolution): the UI solution context
         """
-        super().__init__(solution,"path")
-        self.ppt_set=solution.ppt_set
-        self.slide_viewer=None
+        super().__init__(solution, "path")
+        self.ppt_set = solution.ppt_set
+        self.slide_viewer = None
 
     def setup_ui(self):
         """
@@ -142,8 +183,8 @@ class PresentationsViewer(GridViewer):
             ui.button("walk", on_click=self.on_walk)
             ui.button("show slides", on_click=self.on_show_slides)
         # unfortunately does not work
-        #self.expansion = ui.expansion("Presentations", icon="slideshow", value=True)
-        #with self.expansion:
+        # self.expansion = ui.expansion("Presentations", icon="slideshow", value=True)
+        # with self.expansion:
         self.grid_row = ui.row()
         self.slide_grid_row = ui.row()
 
@@ -156,10 +197,10 @@ class PresentationsViewer(GridViewer):
         """
         super().to_view_lod()
         for record in self.view_lod:
-            path=record["path"]
-            ppt=self.ppt_set.get_ppt(path)
-            url = f"{self.solution.webserver.root_path}/{path}"
-            record["path"] = Link.create(url,ppt.basename)
+            path = record["path"]
+            ppt = self.ppt_set.get_ppt(path)
+            url = f"/slides/{ppt.relpath}"
+            record["path"] = Link.create(url, ppt.basename)
 
     async def load_and_show_presentations(self):
         try:
@@ -173,8 +214,7 @@ class PresentationsViewer(GridViewer):
         Load available presentation metadata
         """
         self.reset_lod()
-        self.ppt_set.load()
-        self.lod=self.ppt_set.as_lod()
+        self.lod = self.ppt_set.as_lod()
 
     async def on_show_slides(self):
         """
@@ -195,26 +235,28 @@ class PresentationsViewer(GridViewer):
         """
         self.slide_grid_row.clear()
         # unfortunately does not work
-        #self.expansion.value = False
+        # self.expansion.value = False
         ppts = []
         for r in selected:
             # magic view to data retranslation
-            ri=r.get("#")
-            row=self.lod[ri]
-            path=row.get("path")
+            ri = r.get("#")
+            row = self.lod[ri]
+            path = row.get("path")
             if path:
-                ppt=self.ppt_set.get_ppt(path)
+                ppt = self.ppt_set.get_ppt(path)
             ppts.append(ppt)
         with self.slide_grid_row:
-            self.slide_viewer = SlideViewer(self.solution,ppts)
+            self.slide_viewer = SlidesViewer(self.solution, ppts)
             self.slide_viewer.load_lod()
             await self.slide_viewer.render_view_lod(self.slide_grid_row)
+
 
 class SlideDetailViewer:
     """
     a single slide
     """
-    def __init__(self, solution: InputWebSolution, slide:Slide):
+
+    def __init__(self, solution: InputWebSolution, slide: Slide):
         """
         Initialize the SlideDetailViewer.
 
@@ -222,8 +264,8 @@ class SlideDetailViewer:
             solution (InputWebSolution): the UI solution context
             slide:Slide
         """
-        self.solution=solution
-        self.slidewalker=solution.slidewalker
+        self.solution = solution
+        self.slidewalker = solution.slidewalker
         self.slide = slide
 
     def render(self):
