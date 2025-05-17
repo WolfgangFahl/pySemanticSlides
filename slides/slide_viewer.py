@@ -51,7 +51,7 @@ class GridViewer:
             view_record = OrderedDict(record)
             view_record["#"]=ri
             view_record.move_to_end(self.key_col, last=False)
-            self.view_lod.append(record)
+            self.view_lod.append(view_record)
             # use the first record to set the html_columns
             if ri==0:
                 for vi,_k in enumerate(view_record.keys()):
@@ -59,7 +59,7 @@ class GridViewer:
         self.view_lod.sort(key=lambda r: r.get(self.key_col))
 
 
-    def render_grid(self):
+    async def render_grid(self):
         """
         Render the view_lod into a ListOfDictsGrid
 
@@ -71,7 +71,8 @@ class GridViewer:
             with_buttons=False,
         )
         with self.solution.content_div:
-            ui.label(f"{self.summary}")
+            if self.summary:
+                ui.label(f"{self.summary}")
             self.grid = ListOfDictsGrid(lod=self.view_lod, config=grid_config)
             self.grid.ag_grid._props["html_columns"] = self.html_columns
             self.grid.set_checkbox_selection(self.key_col)
@@ -82,9 +83,9 @@ class GridViewer:
         """
         raise Exception("abstract load_lod called")
 
-    def render_view_lod(self):
+    async def render_view_lod(self):
         self.to_view_lod()
-        self.render_grid()
+        await self.render_grid()
 
 
 class SlideViewer(GridViewer):
@@ -159,7 +160,7 @@ class PresentationsViewer(GridViewer):
     async def load_and_show_presentations(self):
         try:
             self.load_lod()
-            self.render_view_lod()
+            await self.render_view_lod()
         except Exception as ex:
             self.solution.handle_exception(ex)
 
@@ -203,4 +204,4 @@ class PresentationsViewer(GridViewer):
         self.slide_viewer = SlideViewer(ppts, self.solution)
         self.slide_viewer.load_lod()
         with self.slide_grid_row:
-            self.slide_viewer.render_view_lod()
+            await self.slide_viewer.render_view_lod()
