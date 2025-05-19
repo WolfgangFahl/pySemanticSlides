@@ -20,9 +20,9 @@ dependencies = [
 	# https://pypi.org/project/pyGenericSpreadSheet/
 	# 'pyGenericSpreadSheet',
 	# https://github.com/WolfgangFahl/nicegui_widgets
-	'ngwidgets>=0.23.0',
+	'ngwidgets>=0.25.0',
 	# pyLoDStorage
-	'pyLoDStorage>=0.14.3',
+	'pyLoDStorage>=0.15.0',
 	# https://github.com/konradhalas/dacite
 	'dacite>=1.7.0',
 	# https://github.com/goldsmith/Wikipedia

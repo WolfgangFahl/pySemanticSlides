@@ -7,7 +7,8 @@ Created on 2025-05-16
 import os
 
 from ngwidgets.input_webserver import InputWebserver, InputWebSolution, WebserverConfig
-from nicegui import Client, ui, background_tasks
+from ngwidgets.task_runner import TaskRunner
+from nicegui import app, Client, ui
 from slides.slide_viewer import PresentationsViewer, SlideDetailViewer, SlidesViewer
 from slides.slidewalker import PPTSet, SlideWalker
 from slides.version import Version
@@ -66,7 +67,14 @@ class SlideBrowserWebserver(InputWebserver):
         self.slidewalker = SlideWalker(self.root_path)
         self.ppt_set = PPTSet(self.slidewalker)
         self.ppt_set.load(with_progress=True)
-        pass
+        # PDF path
+        self.pdf_path = os.path.abspath(self.args.pdf_path) if self.args.pdf_path else None
+        # Serve static PDF files if --pdf_path was given
+        if self.pdf_path:
+            if os.path.isdir(self.pdf_path):
+                app.add_static_files("/static/pdf", self.pdf_path)
+            else:
+                self.pdf_path=None
 
 
 class SlideBrowser(InputWebSolution):
@@ -76,6 +84,8 @@ class SlideBrowser(InputWebSolution):
 
     def __init__(self, webserver: SlideBrowserWebserver, client: Client):
         super().__init__(webserver, client)
+        self.pdf_path=webserver.pdf_path
+        pass
 
     def prepare_ui(self):
         anchor_style = r"a:link, a:visited {color: inherit !important; text-decoration: none; font-weight: 500}"
@@ -107,6 +117,9 @@ class SlideBrowser(InputWebSolution):
         self.slides_viewer = None
         self.grid_row = None
 
+        async def render_task():
+            await self.slides_viewer.load_and_render(self.grid_row)
+
         def show():
             try:
                 ppt = self.ppt_set.get_ppt(presentation_path, relative=True)
@@ -120,8 +133,7 @@ class SlideBrowser(InputWebSolution):
                 self.handle_exception(ex)
 
         await self.setup_content_div(show)
-        background_tasks.create(self.slides_viewer.load_and_render(self.grid_row))
-
+        TaskRunner().run_async(render_task)
 
     def show_presentations(self):
         """
