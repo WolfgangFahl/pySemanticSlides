@@ -27,7 +27,7 @@ class View:
         self.solution = solution
         self.debug = self.solution.debug
 
-    def label_value(self,label: str, value, default=""):
+    def label_value(self,label: str, value, default="", compact:bool=False):
         """
         Helper function to display a label-value pair
 
@@ -37,9 +37,13 @@ class View:
             default: Default value if value is None
         """
         value = value if value is not None else default
-        with ui.row().classes("items-center gap-2"):
-            ui.label(f"{label}:").classes("font-bold")
-            ui.label(f"{value}")
+        if compact:
+            ui.label("•").classes("text-gray-500")
+            ui.label(value).tooltip(label)
+        else:
+            with ui.row().classes("items-center gap-2"):
+                ui.label(f"{label}:").classes("font-bold")
+                ui.label(f"{value}")
 
 class GridView(View):
     """
@@ -103,8 +107,6 @@ class GridView(View):
         """
         self.lod: List[dict] = []
         self.view_lod: List[dict] = []
-        self.summary_html: str = ""
-        self.delim: str = ""
 
     def to_view_lod(self):
         """
@@ -135,8 +137,6 @@ class GridView(View):
             debug=self.debug,
         )
         with grid_row:
-            if self.summary_html:
-                ui.html(f"{self.summary_html}")
             self.setup_search()
             self.grid = ListOfDictsGrid(lod=self.view_lod, config=grid_config)
             self.grid.ag_grid._props["html_columns"] = self.html_columns
@@ -180,8 +180,6 @@ class SlidesViewer(GridView):
             pres_url = f"/presentation/{ppt.relpath}"
             pres_info = f"{ppt.basename}({len(slides)})"
             pres_link = Link.create(pres_url, pres_info)
-            self.summary_html += self.delim + pres_link
-            self.delim = "•"
             for slide in slides:
                 slide_record = slide.asDict()
                 slide_record["path"] = ppt.relpath
@@ -209,7 +207,26 @@ class SlidesViewer(GridView):
             record.move_to_end("name", last=False)
             record.move_to_end("#", last=False)
 
+    def render_master(self,grid_row):
+        # Master view (presentation details)
+        with grid_row:
+            with ui.card().classes("w-full mb-4") as self.master_card:
+                if len(self.ppts) == 1:
+                    # If only one presentation is selected, show full details
+                    ppt = self.ppts[0]
+                    presentation_view = PresentationView(self.solution, ppt.relpath)
+                    presentation_view.render()
+                else:
+                    # If multiple presentations, show a summary
+                    ui.label("Multiple Presentations").classes("text-xl font-bold")
+                    for ppt in self.ppts:
+                        pres_url = f"/presentation/{ppt.relpath}"
+                        pres_info = f"{ppt.basename} ({len(ppt.getSlides())} slides)"
+                        ui.link(pres_info, pres_url).classes("block mb-2")
+
+
     async def load_and_render(self, grid_row):
+        self.render_master(grid_row)
         self.load_lod()
         await self.render_view_lod(grid_row)
 
@@ -229,33 +246,37 @@ class PresentationView(View):
         self.ppt = solution.ppt_set.get_ppt(ppt_path, relative=True)
         self.task_runner = TaskRunner()
 
+    def get_pdf_url(self):
+        """
+        Get the PDF URL if available
+
+        Returns:
+            The PDF URL or None if not available
+        """
+        if self.solution.pdf_path:
+            pdf_name = self.ppt.basename.replace(".pptx", ".pdf")
+            pdf_file = os.path.join(self.solution.pdf_path, pdf_name)
+            if os.path.exists(pdf_file):
+                return f"/static/pdf/{pdf_name}"
+        return None
+
+
     def render(self):
         """
         Render the presentation view
         """
-        if not self.ppt:
-            ui.label("Presentation not found")
-            return
-
-        with ui.card().classes("w-full"):
-            ui.label(self.ppt.basename).classes("text-xl font-bold")
-            self.label_value("title", self.ppt.title)
-            self.label_value("author", self.ppt.author)
-            self.label_value("created", self.ppt.created)
-            self.label_value("path", self.ppt.relpath)
-            self.label_value("slides", len(self.ppt.getSlides()))
-
-            with ui.row():
-                ui.button("Open", on_click=self.open_in_office)
-                ui.button("View Slides", on_click=self.view_slides)
-
-                # Add PDF button if available
-                if self.solution.pdf_path:
-                    pdf_name = self.ppt.basename.replace(".pptx", ".pdf")
-                    pdf_file = os.path.join(self.solution.pdf_path, pdf_name)
-                    if os.path.exists(pdf_file):
-                        pdf_url = f"/static/pdf/{pdf_name}"
-                        ui.button("PDF", on_click=lambda: ui.navigate.to(pdf_url))
+        with ui.row().classes("items-center gap-2 w-full"):
+            ui.label(self.ppt.basename).classes("font-bold")
+            ui.label(f"({len(self.ppt.getSlides())} slides)")
+            # Action buttons
+            ui.button(icon="open_in_new", on_click=self.open_in_office, color="primary").props("flat dense")
+            pdf_url = self.get_pdf_url()
+            if pdf_url:
+                ui.button(icon="picture_as_pdf", on_click=lambda url=pdf_url: ui.navigate.to(url), color="primary").props("flat dense")
+            self.label_value("title", self.ppt.title, compact=True)
+            self.label_value("created", self.ppt.created, compact=True)
+            if self.ppt.author:
+                self.label_value("author", self.ppt.author, compact=True)
 
     def open_in_office(self):
         """
