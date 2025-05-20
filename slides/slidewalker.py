@@ -90,41 +90,31 @@ class Slide(object):
 
     def getText4Shapes(self, shapes, yRange, runDelim: str = None):
         """
-        get the text for the given shapes in the given yRange using the given
-        run delimiter
-
-        Args:
-            shapes:
-            yRange:
-            runDelim(str): the delimiter for text runs
+        Get visible text from shapes in a y-range, excluding icon font runs.
         """
-        # lines will be populated with a list of strings,
-        # one for each "line"  in presentation
         lines = []
-        line = ""
-        delim = ""
         if runDelim is None:
             runDelim = self.runDelim
-        y = None
+
         for shape in shapes:
             if not shape.has_text_frame:
                 continue
 
+            line = ""
+            delim = ""
             for paragraph in shape.text_frame.paragraphs:
                 for run in paragraph.runs:
+                    if any('\ue000' <= c <= '\uf8ff' for c in run.text):
+                        continue  # skip icon glyphs
                     line += f"{delim}{run.text}"
                     delim = runDelim
 
             y = self.getMM(shape.top)
-            if y and YRange.isIn(yRange, y):
-                lines.append(line)
+            if y and YRange.isIn(yRange, y) and line.strip():
+                lines.append(line.strip())
 
-            delim = ""
-            line = ""
+        return lines
 
-        if y and YRange.isIn(yRange, y):
-            lines.append(line)
-            return lines
 
     def getText(self, yRange=None):
         """
