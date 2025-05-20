@@ -181,6 +181,7 @@ class PPT(object):
             raise Exception("%s does not exist" % filepath)
         self.prs = None
         self.error = None
+        self.slides_loaded=False
         self.slides = []
 
     def summary(self) -> str:
@@ -232,13 +233,21 @@ class PPT(object):
         """
         os.system(f"open {self.filepath}")  # MacOS – adjust for platform
 
-    def getSlides(self, excludeHiddenSlides: bool = False, runDelim: str = None):
+    def getSlides(self, excludeHiddenSlides: bool = False, runDelim: str = None, force: bool = False):
         """
         get my slides
 
         Args:
             excludeHiddenSlides(bool): if True exclude hidden Slides
+            runDelim(str): delimiter for slide text runs
+            force(bool): if True, reload slides even if already loaded
         """
+        # Return existing slides if already loaded and not forced to reload
+        if not force and self.slides_loaded:
+            return self.slides
+        # Clear existing slides if forcing reload
+        if force:
+            self.slides = []
         if runDelim is None:
             runDelim = Slide.defaultRunDelim
         if self.prs is None:
@@ -257,6 +266,7 @@ class PPT(object):
                     self, slide, page=page, pdf_page=pdf_page, runDelim=runDelim
                 )
                 self.slides.append(pptSlide)
+        self.slides_loaded=True
         return self.slides
 
 
@@ -405,7 +415,7 @@ class SlideWalker(object):
         for pptxFile in pptxFiles:
             if verbose:
                 print(f"Extracting data from {pptxFile}")
-            ppt = PPT(pptxFile, self.rootFolder)
+            ppt = PPT(pptxFile)
             relpath = os.path.relpath(ppt.filepath, self.rootFolder)
             ppt.relpath = relpath
             ppt.open()

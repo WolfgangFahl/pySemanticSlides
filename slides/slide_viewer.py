@@ -154,7 +154,6 @@ class SlidesViewer(GridView):
             for slide in slides:
                 slide_record = slide.asDict()
                 slide_record["path"] = ppt.relpath
-                slide_record["pres"]=pres_link
                 self.lod.append(slide_record)
 
     def to_view_lod(self):
@@ -205,40 +204,30 @@ class PresentationView(View):
             return
 
         with ui.card().classes("w-full"):
-
-            # display the presentation card
-            with ui.card():
-                ui.label(self.ppt.basename).classes("text-xl font-bold")
-                self.label_value("title", self.ppt.title)
-                self.label_value("author", self.ppt.author)
-                self.label_value("created",self.ppt.created)
-                ui.label(f"Path: {self.ppt.relpath}")
-                ui.label(f"Slides: {len(self.ppt.getSlides())}")
+            ui.label(self.ppt.basename).classes("text-xl font-bold")
+            self.label_value("title", self.ppt.title)
+            self.label_value("author", self.ppt.author)
+            self.label_value("created",self.ppt.created)
+            ui.label(f"Path: {self.ppt.relpath}")
+            ui.label(f"Slides: {len(self.ppt.getSlides())}")
 
             with ui.row():
                 ui.button("Open", on_click=self.open_in_office)
                 ui.button("View Slides", on_click=self.view_slides)
 
-                # Add PDF button if available
-                if self.solution.pdf_path:
-                    pdf_name = self.ppt.basename.replace(".pptx", ".pdf")
-                    pdf_file = os.path.join(self.solution.pdf_path, pdf_name)
-                    if os.path.exists(pdf_file):
-                        pdf_url = f"/static/pdf/{pdf_name}"
-                        ui.button("View PDF", on_click=lambda: ui.navigate.to(pdf_url))
+            # Add PDF button if available
+            if self.solution.pdf_path:
+                pdf_name = self.ppt.basename.replace(".pptx", ".pdf")
+                pdf_file = os.path.join(self.solution.pdf_path, pdf_name)
+                if os.path.exists(pdf_file):
+                    pdf_url = f"/static/pdf/{pdf_name}"
+                    ui.button("PDF", on_click=lambda: ui.navigate.to(pdf_url))
 
     def open_in_office(self):
         """
         Open the presentation in Office
         """
         self.ppt.open_in_office()
-
-    def view_slides(self):
-        """
-        Navigate to the slides view
-        """
-        ui.navigate.to(f"/slides/{self.ppt.relpath}")
-
 
 class PresentationsViewer(GridView):
     """
