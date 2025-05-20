@@ -507,17 +507,16 @@ class SlideDetailViewer:
         # Show PDF preview if available
         if self.pdf.valid:
             pdf_url = self.pdf.get_url(page=self.slide.pdf_page)
-            with ui.row().classes("w-full my-2"):
-                # Use an iframe to embed the PDF with specific page
-                markup=f"""
-                <iframe
-                    src="{pdf_url}"
-                    class="w-full"
-                    style="height:800px; border: 1px solid #ddd; border-radius: 4px;"
-                    loading="lazy">
-                </iframe>
-            """
-                ui.html(markup)
+            # Use an iframe to embed the PDF with specific page
+            markup=f"""
+            <iframe
+                src="{pdf_url}"
+                class="w-full"
+                style="height:800px; border: 1px solid #ddd; border-radius: 4px;"
+                loading="lazy">
+            </iframe>
+"""
+            ui.html(markup)
 
     def render(self):
         """
@@ -534,8 +533,10 @@ class SlideDetailViewer:
             url_for_page=lambda page, path=relpath: f"/slide/{path}/{page}"
         )
         navigator.render()
-        with ui.card():
+        with ui.row():
             ui.label(f"#{self.slide.page} {self.slide.name} • {self.slide.title}")
             text = "\n".join(self.slide.getText())
             ui.html(f"<pre>{text}</pre>")
+
+        with ui.row().classes("w-full my-2"):
             self.show_pdf()
