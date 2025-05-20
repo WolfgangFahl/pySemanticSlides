@@ -218,12 +218,14 @@ class SlidesViewer(GridView):
                     presentation_view.render()
                 else:
                     # If multiple presentations, show a summary
-                    ui.label("Multiple Presentations").classes("text-xl font-bold")
-                    for ppt in self.ppts:
-                        pres_url = f"/presentation/{ppt.relpath}"
-                        pres_info = f"{ppt.basename} ({len(ppt.getSlides())} slides)"
-                        ui.link(pres_info, pres_url).classes("block mb-2")
-
+                    with ui.row():
+                        for i,ppt in enumerate(self.ppts):
+                            pres_url = f"/slides/{ppt.relpath}"
+                            name=ppt.basename.replace(".pptx","")
+                            pres_info = f"{name} ({len(ppt.getSlides())} slides)"
+                            if i>0:
+                                ui.label("•").classes("text-gray-500")
+                            ui.link(pres_info, pres_url).classes("block mb-2").tooltip(ppt.title)
 
     async def load_and_render(self, grid_row):
         self.render_master(grid_row)
@@ -406,6 +408,9 @@ class PresentationsViewer(GridView):
         except Exception as ex:
             self.solution.handle_exception(ex)
 
+    async def load_and_render_slider_viewer(self):
+        self.slide_viewer.load_and_render(self.slide_grid_row)
+
     async def show_selected_slides(self, selected: List[dict]):
         """
         Load and display slides from the selected presentations.
@@ -414,18 +419,19 @@ class PresentationsViewer(GridView):
             selected: selected rows from the presentation list
         """
         self.slide_grid_row.clear()
-        ppts = []
+        path_str=""
+        delim=""
         for r in selected:
             ri = r.get("#")
             row = self.lod[ri]
             path = row.get("path")
             if path:
-                ppt = self.ppt_set.get_ppt(path)
-            ppts.append(ppt)
-        with self.slide_grid_row:
-            self.slide_viewer = SlidesViewer(self.solution, ppts)
-            self.task_runner.run_async(lambda: self.slide_viewer.load_and_render(self.slide_grid_row))
-
+                ppt = self.ppt_set.get_ppt(path, relative=False)
+                if ppt:
+                    path_str+=f"{delim}{ppt.relpath}"
+                    delim=","
+        url=f"/slides/{path_str}"
+        ui.navigate.to(url)
 
 class SlideDetailViewer:
     """

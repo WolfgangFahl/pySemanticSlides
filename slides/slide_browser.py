@@ -9,10 +9,10 @@ import os
 from ngwidgets.input_webserver import InputWebserver, InputWebSolution, WebserverConfig
 from ngwidgets.task_runner import TaskRunner
 from nicegui import app, Client, ui
-from slides.slide_viewer import PresentationView, PresentationsViewer, SlideDetailViewer, SlidesViewer
+from slides.slide_viewer import PresentationsViewer, SlideDetailViewer, SlidesViewer
 from slides.slidewalker import PPTSet, SlideWalker
 from slides.version import Version
-
+from typing import List
 
 class SlideBrowserWebserver(InputWebserver):
     """
@@ -43,13 +43,9 @@ class SlideBrowserWebserver(InputWebserver):
         async def presentations(client: Client):
             return await self.page(client, SlideBrowser.show_presentations)
 
-        @ui.page("/presentation/{presentation_path:path}")
-        async def presentation(presentation_path: str, client: Client):
-            return await self.page(client, SlideBrowser.show_presentation, presentation_path)
-
-        @ui.page("/slides/{presentation_path:path}")
-        async def slides(presentation_path: str, client: Client):
-            return await self.page(client, SlideBrowser.show_slides, presentation_path)
+        @ui.page("/slides/{presentation_paths:path}")
+        async def slides(presentation_paths: str, client: Client):
+            return await self.page(client, SlideBrowser.show_slides, presentation_paths)
 
         @ui.page("/slide/{presentation_path:path}/{slide_index}")
         async def slide_detail(
@@ -114,10 +110,17 @@ class SlideBrowser(InputWebSolution):
         await self.setup_content_div(show)
 
 
-    async def show_slides(self, presentation_path: str):
+    async def show_slides(self, presentation_paths_str: str):
         """
-        Display slides for a single presentation path.
+        Display slides for single or multiple presentation paths.
+
+        Args:
+            presentation_paths_str: Path string that may contain multiple paths separated by '+'
         """
+        # Parse the path string into a list of paths
+        delim=","
+        presentation_paths = presentation_paths_str.split(delim) if delim in presentation_paths_str else [presentation_paths_str]
+
         self.slides_viewer = None
         self.grid_row = None
 
@@ -126,12 +129,18 @@ class SlideBrowser(InputWebSolution):
 
         def show():
             try:
-                ppt = self.ppt_set.get_ppt(presentation_path, relative=True)
-                if not ppt:
-                    ui.label(f"no such path {presentation_path}")
+                ppts = []
+                for presentation_path in presentation_paths:
+                    ppt = self.ppt_set.get_ppt(presentation_path, relative=True)
+                    if not ppt:
+                        ui.notify(f"{presentation_path} not available")
+                    else:
+                        ppts.append(ppt)
+                if not ppts:
+                    ui.label("No valid presentations requested")
                     return
                 self.grid_row = ui.row()
-                self.slides_viewer = SlidesViewer(solution=self, ppts=[ppt])
+                self.slides_viewer = SlidesViewer(solution=self, ppts=ppts)
 
             except Exception as ex:
                 self.handle_exception(ex)
@@ -145,19 +154,6 @@ class SlideBrowser(InputWebSolution):
         """
         viewer = PresentationsViewer(solution=self)
         viewer.setup_ui()
-
-    async def show_presentation(self, presentation_path: str):
-        """
-        Show a single presentation view
-        """
-        def show():
-            try:
-                viewer = PresentationView(self, presentation_path)
-                viewer.render()
-            except Exception as ex:
-                self.handle_exception(ex)
-
-        await self.setup_content_div(show)
 
     async def home(self):
         """
