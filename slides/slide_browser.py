@@ -9,7 +9,7 @@ import os
 from ngwidgets.input_webserver import InputWebserver, InputWebSolution, WebserverConfig
 from ngwidgets.task_runner import TaskRunner
 from nicegui import app, Client, ui
-from slides.slide_viewer import PresentationsViewer, SlideDetailViewer, SlidesViewer
+from slides.slide_viewer import PresentationView, PresentationsViewer, SlideDetailViewer, SlidesViewer
 from slides.slidewalker import PPTSet, SlideWalker
 from slides.version import Version
 
@@ -42,6 +42,10 @@ class SlideBrowserWebserver(InputWebserver):
         @ui.page("/presentations")
         async def presentations(client: Client):
             return await self.page(client, SlideBrowser.show_presentations)
+
+        @ui.page("/presentation/{presentation_path:path}")
+        async def presentation(presentation_path: str, client: Client):
+            return await self.page(client, SlideBrowser.show_presentation, presentation_path)
 
         @ui.page("/slides/{presentation_path:path}")
         async def slides(presentation_path: str, client: Client):
@@ -141,6 +145,19 @@ class SlideBrowser(InputWebSolution):
         """
         viewer = PresentationsViewer(solution=self)
         viewer.setup_ui()
+
+    async def show_presentation(self, presentation_path: str):
+        """
+        Show a single presentation view
+        """
+        def show():
+            try:
+                viewer = PresentationView(self, presentation_path)
+                viewer.render()
+            except Exception as ex:
+                self.handle_exception(ex)
+
+        await self.setup_content_div(show)
 
     async def home(self):
         """

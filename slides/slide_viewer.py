@@ -16,10 +16,34 @@ from slides.pdf_generator import PdfGenerator, FileSet
 from slides.slidewalker import PPT, Slide
 from ngwidgets.task_runner import TaskRunner
 
-
-class GridViewer:
+class View:
     """
-    Base class for grid-based viewers using ListOfDictsGrid
+    Base class for views with common functions
+    """
+
+    def __init__(
+        self,
+        solution: InputWebSolution):
+        self.solution = solution
+        self.debug = self.solution.debug
+
+    def label_value(self,label: str, value, default=""):
+        """
+        Helper function to display a label-value pair
+
+        Args:
+            label: The label to display
+            value: The value to display
+            default: Default value if value is None
+        """
+        value = value if value is not None else default
+        with ui.row().classes("items-center gap-2"):
+            ui.label(f"{label}:").classes("font-bold")
+            ui.label(f"{value}")
+
+class GridView(View):
+    """
+    Base class for grid-based views using ListOfDictsGrid
     """
 
     def __init__(
@@ -29,8 +53,7 @@ class GridViewer:
         search_cols: List[str] = None,
         html_columns: List[int] = [1],
     ):
-        self.solution = solution
-        self.debug = self.solution.debug
+        super().__init__(solution=solution)
         self.key_col = key_col
         self.grid = None
         self.html_columns = html_columns
@@ -68,7 +91,7 @@ class GridViewer:
     def reset_lod(self):
         self.lod: List[dict] = []
         self.view_lod: List[dict] = []
-        self.summary: str = ""
+        self.summary_html: str = ""
         self.delim: str = ""
 
     def to_view_lod(self):
@@ -91,8 +114,8 @@ class GridViewer:
             debug=self.debug,
         )
         with grid_row:
-            if self.summary:
-                ui.label(f"{self.summary}")
+            if self.summary_html:
+                ui.html(f"{self.summary_html}")
             self.setup_search()
             self.grid = ListOfDictsGrid(lod=self.view_lod, config=grid_config)
             self.grid.ag_grid._props["html_columns"] = self.html_columns
@@ -106,7 +129,7 @@ class GridViewer:
         await self.render_grid(grid_row)
 
 
-class SlidesViewer(GridViewer):
+class SlidesViewer(GridView):
     """
     viewer for slides
     """
@@ -116,14 +139,22 @@ class SlidesViewer(GridViewer):
         self.ppt_set = solution.ppt_set
 
     def load_lod(self):
+        """
+        load my list of dicts
+        """
         self.reset_lod()
         for ppt in self.ppts:
             slides = ppt.getSlides()
-            self.summary += f"{self.delim}{ppt.basename}({len(slides)})"
-            self.delim = ", "
+            # Link to the presentation view
+            pres_url = f"/presentation/{ppt.relpath}"
+            pres_info = f"{ppt.basename}({len(slides)})"
+            pres_link = Link.create(pres_url, pres_info)
+            self.summary_html +=self.delim+pres_link
+            self.delim = "•"
             for slide in slides:
                 slide_record = slide.asDict()
                 slide_record["path"] = ppt.relpath
+                slide_record["pres"]=pres_link
                 self.lod.append(slide_record)
 
     def to_view_lod(self):
@@ -149,8 +180,67 @@ class SlidesViewer(GridViewer):
         self.load_lod()
         await self.render_view_lod(grid_row)
 
+class PresentationView(View):
+    """
+    View for a single presentation
+    """
+    def __init__(self, solution: InputWebSolution, ppt_path: str):
+        """
+        Initialize the presentation view
 
-class PresentationsViewer(GridViewer):
+        Args:
+            solution: The web solution instance
+            ppt_path: Path to the presentation file
+        """
+        super().__init__(solution)
+        self.ppt = solution.ppt_set.get_ppt(ppt_path, relative=True)
+        self.task_runner = TaskRunner()
+
+    def render(self):
+        """
+        Render the presentation view
+        """
+        if not self.ppt:
+            ui.label("Presentation not found")
+            return
+
+        with ui.card().classes("w-full"):
+
+            # display the presentation card
+            with ui.card():
+                ui.label(self.ppt.basename).classes("text-xl font-bold")
+                self.label_value("title", self.ppt.title)
+                self.label_value("author", self.ppt.author)
+                self.label_value("created",self.ppt.created)
+                ui.label(f"Path: {self.ppt.relpath}")
+                ui.label(f"Slides: {len(self.ppt.getSlides())}")
+
+            with ui.row():
+                ui.button("Open", on_click=self.open_in_office)
+                ui.button("View Slides", on_click=self.view_slides)
+
+                # Add PDF button if available
+                if self.solution.pdf_path:
+                    pdf_name = self.ppt.basename.replace(".pptx", ".pdf")
+                    pdf_file = os.path.join(self.solution.pdf_path, pdf_name)
+                    if os.path.exists(pdf_file):
+                        pdf_url = f"/static/pdf/{pdf_name}"
+                        ui.button("View PDF", on_click=lambda: ui.navigate.to(pdf_url))
+
+    def open_in_office(self):
+        """
+        Open the presentation in Office
+        """
+        self.ppt.open_in_office()
+
+    def view_slides(self):
+        """
+        Navigate to the slides view
+        """
+        ui.navigate.to(f"/slides/{self.ppt.relpath}")
+
+
+class PresentationsViewer(GridView):
     """
     viewer for presentations
     """
@@ -265,7 +355,3 @@ class SlideDetailViewer:
             ui.label(f"{self.slide.name}")
             ui.label(f"#{self.slide.page}")
             ui.html(f"<pre>{self.slide.getText()}</pre>")
-            ui.button("Open", on_click=lambda: self.open_in_office())
-
-    def open_in_office(self):
-        self.slide.ppt.open_in_office()
