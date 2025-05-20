@@ -16,6 +16,35 @@ from slides.pdf_generator import PdfGenerator, FileSet
 from slides.slidewalker import PPT, Slide
 from ngwidgets.task_runner import TaskRunner
 
+class PDF:
+    """
+    Portable Document File handling
+    """
+    def __init__(self,solution,ppt):
+        self.solution=solution
+        self.ppt=ppt
+        self.pdf_name = self.ppt.basename.replace(".pptx", ".pdf")
+        if self.solution.pdf_path:
+            self.pdf_file = os.path.join(self.solution.pdf_path, self.pdf_name)
+            self.valid=os.path.exists(self.pdf_file)
+        else:
+            self.pdf_file=None
+            self.valid=False
+
+    def get_url(self,page:int=None):
+        url=f"/static/pdf/{self.pdf_name}" if self.valid else None
+        if url and page:
+            url=f"{url}#page={page}"
+        return url
+
+    def get_link(self,page:int=None):
+        pdf_url=self.get_url(page=page)
+        if pdf_url:
+            pdf_link = Link.create(pdf_url, "📄 PDF")
+        else:
+            pdf_link=""
+        return pdf_link
+
 class View:
     """
     Base class for views with common functions
@@ -220,13 +249,7 @@ class SlidesViewer(GridView):
                     # If multiple presentations, show a summary
                     with ui.row():
                         for i,ppt in enumerate(self.ppts):
-                            pres_url = f"/slides/{ppt.relpath}"
-                            name=ppt.basename.replace(".pptx","")
-                            pres_info = f"{name} ({len(ppt.getSlides())} slides)"
-                            if i>0:
-                                ui.label("•").classes("text-gray-500")
-                            ui.link(pres_info, pres_url).classes("block mb-2").tooltip(ppt.title)
-
+                            PresentationView.get_ppt_header(ppt,i>0)
     async def load_and_render(self, grid_row):
         self.render_master(grid_row)
         self.load_lod()
@@ -246,21 +269,8 @@ class PresentationView(View):
         """
         super().__init__(solution)
         self.ppt = solution.ppt_set.get_ppt(ppt_path, relative=True)
-        self.task_runner = TaskRunner()
-
-    def get_pdf_url(self):
-        """
-        Get the PDF URL if available
-
-        Returns:
-            The PDF URL or None if not available
-        """
-        if self.solution.pdf_path:
-            pdf_name = self.ppt.basename.replace(".pptx", ".pdf")
-            pdf_file = os.path.join(self.solution.pdf_path, pdf_name)
-            if os.path.exists(pdf_file):
-                return f"/static/pdf/{pdf_name}"
-        return None
+        self.pdf = PDF(solution, self.ppt) if self.ppt else None
+        self.task_runner = TaskRunner(timeout=40)
 
 
     def render(self):
@@ -272,8 +282,8 @@ class PresentationView(View):
             ui.label(f"({len(self.ppt.getSlides())} slides)")
             # Action buttons
             ui.button(icon="open_in_new", on_click=self.open_in_office, color="primary").props("flat dense")
-            pdf_url = self.get_pdf_url()
-            if pdf_url:
+            if self.pdf and self.pdf.valid:
+                pdf_url = self.pdf.get_url()
                 ui.button(icon="picture_as_pdf", on_click=lambda url=pdf_url: ui.navigate.to(url), color="primary").props("flat dense")
             self.label_value("title", self.ppt.title, compact=True)
             self.label_value("created", self.ppt.created, compact=True)
@@ -291,6 +301,16 @@ class PresentationView(View):
         Navigate to the slides view
         """
         ui.navigate.to(f"/slides/{self.ppt.relpath}")
+
+    @classmethod
+    def get_ppt_header(cls,ppt,with_delim:bool=False):
+        pres_url = f"/slides/{ppt.relpath}"
+        name=ppt.basename.replace(".pptx","")
+        pres_info = f"{name} ({len(ppt.getSlides())} slides)"
+        if with_delim:
+            ui.label("•").classes("text-gray-500")
+        ui.link(pres_info, pres_url).classes("block mb-2").tooltip(ppt.title)
+
 
 class PresentationsViewer(GridView):
     """
@@ -345,14 +365,8 @@ class PresentationsViewer(GridView):
             ppt = self.ppt_set.get_ppt(path)
             url = f"/slides/{ppt.relpath}"
             record["path"] = Link.create(url, ppt.basename)
-            pdf_link = ""
-            if self.solution.pdf_path:
-                pdf_name = ppt.basename.replace(".pptx", ".pdf")
-                pdf_file = os.path.join(self.solution.pdf_path, pdf_name)
-                if os.path.exists(pdf_file):
-                    pdf_url = f"/static/pdf/{pdf_name}"
-                    pdf_link = Link.create(pdf_url, "📄 PDF")
-            record["pdf"] = pdf_link
+            pdf=PDF(self.solution,ppt)
+            record["pdf"] = pdf.get_link()
 
     async def load_and_show_presentations(self):
         """
@@ -447,13 +461,35 @@ class SlideDetailViewer:
         """
         self.solution = solution
         self.slide = slide
+        self.pdf = PDF(solution, self.slide.ppt)
+
+    def show_pdf(self):
+        # Show PDF preview if available
+        if self.pdf.valid:
+            pdf_url = self.pdf.get_url(page=self.slide.pdf_page)
+            with ui.card().classes("w-full my-2"):
+                # Use an iframe to embed the PDF with specific page
+                markup=(f"""
+                    <iframe
+                        src="{pdf_url}"
+                        width="100%"
+                        height="800px"
+                        style="border: 1px solid #ddd; border-radius: 4px;">
+                    </iframe>
+                    """)
+                ui.html(markup)
 
     def render(self):
         """
         Render the slide details
         """
+        presentation_view = PresentationView(self.solution, self.slide.ppt.relpath)
+        presentation_view.render()
+        #PresentationView.get_ppt_header(self.slide.ppt)
         with ui.card():
             ui.label(f"{self.slide.title}")
             ui.label(f"{self.slide.name}")
             ui.label(f"#{self.slide.page}")
-            ui.html(f"<pre>{self.slide.getText()}</pre>")
+            text=self.slide.getText()
+            ui.html(f"<pre>{text}</pre>")
+            self.show_pdf()
