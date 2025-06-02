@@ -143,8 +143,10 @@ class Slide(object):
                 text = self.getText4Shapes(
                     notes_slide.shapes, yRange, runDelim=self.runDelim
                 )
+                pass
             elif notes_slide.notes_text_frame:
                 text = notes_slide.notes_text_frame.text
+                pass
         return text
 
     def getLayoutName(self) -> str:
