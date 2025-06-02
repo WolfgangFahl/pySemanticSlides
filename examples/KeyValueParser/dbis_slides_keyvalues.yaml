@@ -1,0 +1,26 @@
+# Key Value Parser configuration for pySemantic Slides
+# https://github.com/WolfgangFahl/pySemanticSlides
+# WF 2025-06-02
+# this is the definition that has been used for the slides
+# of the RWTH Aachen DBIS chair for the Database and Information Systems lecture
+key_value_delim: ":"
+record_delim: "\n"
+value_delim: ","
+quote: "'"
+strip: true
+ignore_errors: true
+defined_keys_only: false
+debug: false
+keydefs:
+- keyword: "Name"
+  key: "name"
+  has_list: false
+- keyword: "Title"
+  key: "title"
+  has_list: false
+- keyword: "Keywords"
+  key: "keywords"
+  has_list: false
+- keyword: "Literature"
+  key: "literatur"
+  has_list: true
