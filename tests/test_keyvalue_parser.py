@@ -5,6 +5,7 @@ Created on 2023-02-15
 """
 
 import json
+from pathlib import Path
 
 from slides.keyvalue_parser import (
     Keydef,
@@ -14,6 +15,7 @@ from slides.keyvalue_parser import (
     SimpleKeyValueParser,
     Split,
 )
+
 from tests.basetest import Basetest
 
 
@@ -21,6 +23,11 @@ class TestKeyValueParser(Basetest):
     """
     test the key value parser
     """
+
+    def setUp(self, debug=False, profile=True):
+        Basetest.setUp(self, debug=debug, profile=profile)
+        base_path = Path(__file__).parent.parent
+        self.example_dir = base_path / "examples" / "KeyValueParser"
 
     def testQuotedStringSplit(self):
         """
@@ -61,10 +68,9 @@ class TestKeyValueParser(Basetest):
         test the list handling
         """
         debug = True
-        config = KeyValueParserConfig()
-        kvp = KeyValueSplitParser(config=config)
         keydefs = [Keydef("Keywords", "keyword")]
-        kvp.setKeydefs(keydefs)
+        config = KeyValueParserConfig(keydefs=keydefs)
+        kvp = KeyValueSplitParser(config=config)
         for text, expected in [
             ("Keywords: a,b,c", "a,b,c"),
             ("Keywords: 'a','b,c','d'", "'a','b,c','d'"),
@@ -83,7 +89,10 @@ class TestKeyValueParser(Basetest):
             for s in [":", "→", "="]:
                 for v in [",", ";"]:
                     config = KeyValueParserConfig(
-                        record_delim=r, key_value_delim=s, value_delim=v, debug=debug
+                        record_delim=r,
+                        key_value_delim=s,
+                        value_delim=v,
+                        debug=debug
                     )
                     yield config
 
@@ -176,7 +185,8 @@ class TestKeyValueParser(Basetest):
                     kvp_name = kvp.__class__.__name__
                     if text and (kvp.config.quote in text) and ("Simple" in kvp_name):
                         continue
-                    kvp.setKeydefs(keydefs)
+                    kvp.config.keydefs=keydefs
+                    kvp.config.__post_init__()
                     kv = kvp.getKeyValues(text)
                     if debug:
                         print(f"{text}")
@@ -196,3 +206,15 @@ class TestKeyValueParser(Basetest):
                             )
                 except Exception as ex:
                     self.fail(str(ex))
+
+    def testLoadConfigFromYaml(self):
+        """
+        test loading config from YAML file
+        """
+        debug = self.debug
+        debug=True
+        yaml_file = self.example_dir / "dbis_slides_keyvalues.yaml"
+        config = KeyValueParserConfig.ofYaml(str(yaml_file))
+        if debug:
+            print(json.dumps(config.keydefs_by_keyword,indent=2,default=str))
+

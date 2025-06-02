@@ -259,6 +259,8 @@ class PPT(object):
         self.slides_loaded=True
         return self.slides
 
+    def save(self, fileName: str):
+        self.prs.save(fileName)
 
 class PPTSet:
     """

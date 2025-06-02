@@ -40,16 +40,15 @@ class TestCollectKeyValuesFromNotes(Basetest):
         test handling the slide Notes
         """
         debug = self.debug
-        # debug=True
-        config = KeyValueParserConfig(record_delim="\n")
-        kvp = KeyValueSplitParser(config=config)
+        debug=True
         keydefs = [
             Keydef("Name", "name"),
             Keydef("Title", "title"),
             Keydef("Keywords", "keywords", False),
             Keydef("Literature", "literatur", True),
         ]
-        kvp.setKeydefs(keydefs)
+        config = KeyValueParserConfig(record_delim="\n", keydefs=keydefs)
+        kvp = KeyValueSplitParser(config=config)
         pres_list = self.getPresentations()
         for _pres_file, pres_dict in pres_list.items():
             slide_records = pres_dict["slides"]

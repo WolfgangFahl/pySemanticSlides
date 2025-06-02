@@ -4,14 +4,26 @@ Created on 2023-02-14
 @author: wf
 """
 
+from dataclasses import dataclass, field
 import traceback
 import typing
-from dataclasses import dataclass
+
+from lodstorage.yamlable import lod_storable
 
 import pyparsing as pp
 
 
 @dataclass
+class Keydef:
+    """
+    a key definition
+    """
+
+    keyword: str
+    key: str
+    has_list: bool = False
+
+@lod_storable
 class KeyValueParserConfig:
     """
     a configuration for a key/value Parser
@@ -26,34 +38,19 @@ class KeyValueParserConfig:
     ignore_errors: bool = True
     defined_keys_only: bool = False
     debug: bool = False
+    keydefs: typing.List[Keydef] = field(default_factory=list)
 
+    def __post_init__(self):
+        self.keydefs_by_keyword = {}
+        for keydef in self.keydefs:
+            self.keydefs_by_keyword[keydef.keyword] = keydef
 
-@dataclass
-class Keydef:
-    """
-    a key definition
-    """
-
-    keyword: str
-    key: str
-    has_list: bool = False
 
     @classmethod
-    def as_dict(cls, keydefs: typing.List["Keydef"]) -> typing.Dict[str, "Keydef"]:
-        """
-        convert the given list of keydefs to a dict by keyword
-
-        Args:
-            keydefs(list): the list of key defs
-
-        Returns:
-            dict: a dict keyword -> Keydef
-
-        """
-        keydefs_by_keyword = {}
-        for keydef in keydefs:
-            keydefs_by_keyword[keydef.keyword] = keydef
-        return keydefs_by_keyword
+    def ofYaml(cls, yaml_path: str) -> "KeyValueParserConfig":
+        """Load keyvalue parser configuration from YAML file."""
+        kvp_config = cls.load_from_yaml_file(yaml_path)
+        return kvp_config
 
 
 class Split:
@@ -126,16 +123,6 @@ class BaseKeyValueParser:
         """
         self.config = config
         self.errors = []
-        self.keydefs_by_keyword = {}
-
-    def setKeydefs(self, keydefs: typing.List[Keydef]):
-        """
-        set my key definitions
-
-        Args:
-             keydefs(List[Keydef]): a list of keyword definitions
-        """
-        self.keydefs_by_keyword = Keydef.as_dict(keydefs)
 
     def add_error(self, error_msg: str):
         """
@@ -216,13 +203,13 @@ class KeyValueSplitParser(BaseKeyValueParser):
                     keyword = key_str.strip()
                     values_str = key_values[1]
                     # is the keyword defined
-                    if not keyword in self.keydefs_by_keyword:
+                    if not keyword in self.config.keydefs_by_keyword:
                         if self.config.defined_keys_only:
                             self.add_error(f"undefined keyword {keyword}")
                         key = keyword
                         value = values_str
                     else:
-                        keydef = self.keydefs_by_keyword[keyword]
+                        keydef = self.config.keydefs_by_keyword[keyword]
                         # map keyword to key
                         key = keydef.key
                         values_split = Split(
@@ -262,17 +249,17 @@ class KeyValueParser(BaseKeyValueParser):
             pp.ParserElement.setDefaultWhitespaceChars("\t")
         else:
             pp.ParserElement.setDefaultWhitespaceChars("\n")
+        if config.keydefs:
+            self._init_grammar_from_config()
         pass
 
-    def setKeydefs(self, keydefs: typing.List[Keydef]):
-        """
-        overwrite how to set my key definitions
 
-        Args:
-             keydefs(List[Keydef]): a list of keyword definitions
+    def init_grammar_from_config(self):
         """
-        BaseKeyValueParser.setKeydefs(self, keydefs)
-        # set local variable from config
+        initialize my grammar from my config
+        """
+        # set local variables from config
+        self.keydefs_by_keyword = self.config.keydefs_by_keyword
         record_delim = self.config.record_delim
         key_value_delim = self.config.key_value_delim
         value_delim = self.config.value_delim
@@ -377,8 +364,8 @@ class SimpleKeyValueParser(BaseKeyValueParser):
                 pkey = pkey.strip()
                 if self.config.strip:
                     value = value.strip()
-                if pkey in self.keydefs_by_keyword:
-                    keydef = self.keydefs_by_keyword[pkey]
+                if pkey in self.config.keydefs_by_keyword:
+                    keydef = self.config.keydefs_by_keyword[pkey]
                     key = keydef.key
                     if keydef.has_list:
                         value_list = value.split(self.config.value_delim)
