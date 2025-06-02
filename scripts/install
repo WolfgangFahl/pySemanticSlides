@@ -1,4 +1,11 @@
 #!/bin/bash
 # WF 2023-02-14
+# update 2025-06-02
 # install
+if [[ -n "$GITHUB_ACTIONS" && -x "$(command -v apt-get)" ]]; then
+    echo "Running in GitHub Actions with apt-get available. Installing dependencies..."
+    sudo apt-get update
+    # install dependencies
+    sudo apt-get install -y libreoffice
+fi
 pip install .
