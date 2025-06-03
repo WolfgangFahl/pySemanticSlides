@@ -212,7 +212,7 @@ class TestKeyValueParser(Basetest):
         test loading config from YAML file
         """
         debug = self.debug
-        debug=True
+        #debug=True
         yaml_file = self.example_dir / "dbis_slides_keyvalues.yaml"
         config = KeyValueParserConfig.ofYaml(str(yaml_file))
         if debug:
