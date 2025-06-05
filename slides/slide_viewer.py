@@ -244,6 +244,7 @@ class PresentationView(View):
             ppt_path: Path to the presentation file
         """
         super().__init__(solution)
+        self.total_slides=0
         self.ppt_path = ppt_path
         self.ppt = solution.ppt_set.get_ppt(ppt_path, relative=True)
         self.pdf = PDF(solution, self.ppt) if self.ppt else None
@@ -253,9 +254,10 @@ class PresentationView(View):
         """
         Render the presentation view
         """
-        with ui.row().classes("items-center gap-2 w-full"):
+        self.total_slides = len(self.ppt.getSlides())
+        with ui.row().classes("items-center gap-2 w-full") as self.header_row:
             ui.label(self.ppt.basename).classes("font-bold")
-            ui.label(f"({len(self.ppt.getSlides())} slides)")
+            ui.label(f"({self.total_slides} slides)")
             # Action buttons
             ui.button(
                 icon="open_in_new", on_click=self.open_in_office, color="primary"

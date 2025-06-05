@@ -62,3 +62,85 @@ class PageNavigator:
         """Render the page navigator with a single HTML call"""
         markup = self.generate_markup()
         ui.html(markup)
+
+class NicePageNavigator:
+    """
+    Reactive page navigator with button controls
+    """
+
+    def __init__(self,
+        parent,
+        target_object,
+        current_page_attr: str,
+        total_pages: int,
+        on_page_change=None):
+        """
+        Initialize the reactive page navigator
+
+        Args:
+            parent: parent ui element
+            target_object: Object that contains the current_page attribute
+            current_page_attr: Name of the current page attribute to bind to
+            total_pages: Total number of pages
+            on_page_change: Function to be called when page changes with new page number
+        """
+        self.parent=parent
+        self.target_object = target_object
+        self.current_page_attr = current_page_attr
+        self.total_pages = total_pages
+        self.on_page_change_callback = on_page_change
+
+    def get_current_page(self) -> int:
+        """Get current page from target object"""
+        return getattr(self.target_object, self.current_page_attr)
+
+    def set_current_page(self, page: int):
+        """Set current page on target object and trigger callback"""
+        page = max(1, min(page, self.total_pages))
+        setattr(self.target_object, self.current_page_attr, page)
+        if self.on_page_change_callback:
+            self.on_page_change_callback(page)
+
+    def on_first_page(self):
+        """Navigate to first page"""
+        self.set_current_page(1)
+
+    def on_previous_page(self):
+        """Navigate to previous page"""
+        current = self.get_current_page()
+        self.set_current_page(current - 1)
+
+    def on_fast_backward(self):
+        """Navigate 10 pages backward"""
+        current = self.get_current_page()
+        self.set_current_page(current - 10)
+
+    def on_next_page(self):
+        """Navigate to next page"""
+        current = self.get_current_page()
+        self.set_current_page(current + 1)
+
+    def on_fast_forward(self):
+        """Navigate 10 pages forward"""
+        current = self.get_current_page()
+        self.set_current_page(current + 10)
+
+    def on_last_page(self):
+        """Navigate to last page"""
+        self.set_current_page(self.total_pages)
+
+    def render(self):
+        """Render the reactive page navigator"""
+        with self.parent:
+            with ui.row().classes("items-center justify-center gap-2 my-4"):
+                ui.button("⏮", on_click=self.on_first_page).props("flat dense").tooltip("First Page")
+                ui.button("⏪", on_click=self.on_fast_backward).props("flat dense").tooltip("Fast Backward (-10)")
+                ui.button("◀", on_click=self.on_previous_page).props("flat dense").tooltip("Previous Page")
+
+                # Page indicator
+                current_page = self.get_current_page()
+                ui.label(f"Page {current_page} of {self.total_pages}").classes("mx-4")
+
+                ui.button("▶", on_click=self.on_next_page).props("flat dense").tooltip("Next Page")
+                ui.button("⏩", on_click=self.on_fast_forward).props("flat dense").tooltip("Fast Forward (+10)")
+                ui.button("⏭", on_click=self.on_last_page).props("flat dense").tooltip("Last Page")
