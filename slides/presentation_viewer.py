@@ -71,19 +71,11 @@ class SinglePresentationView(PresentationView):
         with self.solution.content_div:
             self.render()
             with self.header_row:
-                ui.label("Page:")
-                ui.number(
-                    value=self.current_page,
-                    min=1,
-                    max=self.total_slides,
-                    step=1
-                ).bind_value(self, "current_page").on('update:model-value', lambda: self.on_page_changed(self.current_page))
-
                 self.page_navigator = NicePageNavigator(
                     parent=self.header_row,
                     target_object=self,
-                    current_page_attr="current_page",
                     total_pages=self.total_slides,
+                    current_page_attr="current_page",
                     on_page_change=self.on_page_changed
                 )
                 self.page_navigator.render()

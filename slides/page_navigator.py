@@ -71,8 +71,8 @@ class NicePageNavigator:
     def __init__(self,
         parent,
         target_object,
-        current_page_attr: str,
         total_pages: int,
+        current_page_attr: str="current_page",
         on_page_change=None):
         """
         Initialize the reactive page navigator
@@ -137,9 +137,15 @@ class NicePageNavigator:
                 ui.button("⏪", on_click=self.on_fast_backward).props("flat dense").tooltip("Fast Backward (-10)")
                 ui.button("◀", on_click=self.on_previous_page).props("flat dense").tooltip("Previous Page")
 
-                # Page indicator
-                current_page = self.get_current_page()
-                ui.label(f"Page {current_page} of {self.total_pages}").classes("mx-4")
+                # Page indicator with number input
+                ui.number(
+                    value=self.get_current_page(),
+                    min=1,
+                    max=self.total_pages,
+                    step=1
+                ).bind_value(self.target_object, self.current_page_attr).on('update:model-value', lambda: self.on_page_change_callback(self.get_current_page()) if self.on_page_change_callback else None).props("dense outlined").style("width: 80px").classes("mx-2")
+
+                ui.label(f"of {self.total_pages}").classes("mx-2")
 
                 ui.button("▶", on_click=self.on_next_page).props("flat dense").tooltip("Next Page")
                 ui.button("⏩", on_click=self.on_fast_forward).props("flat dense").tooltip("Fast Forward (+10)")

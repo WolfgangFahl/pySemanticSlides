@@ -1,0 +1,5 @@
+#!/bin/bash
+# WF 2025-06-05
+pdf_path=$HOME/.pysemanticslides/examples/pdf
+mkdir -p $pdf_path
+slidebrowser -s -l -c --pdf_path $pdf_path examples 
