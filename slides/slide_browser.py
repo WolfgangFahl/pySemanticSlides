@@ -8,11 +8,13 @@ import os
 
 from ngwidgets.input_webserver import InputWebserver, InputWebSolution, WebserverConfig
 from ngwidgets.task_runner import TaskRunner
-from nicegui import app, Client, ui
+from nicegui import Client, app, ui
+
+from slides.presentation_viewer import SinglePresentationView
 from slides.slide_viewer import PresentationsViewer, SlideDetailViewer, SlidesViewer
 from slides.slidewalker import PPTSet, SlideWalker
 from slides.version import Version
-from typing import List
+
 
 class SlideBrowserWebserver(InputWebserver):
     """
@@ -43,6 +45,12 @@ class SlideBrowserWebserver(InputWebserver):
         async def presentations(client: Client):
             return await self.page(client, SlideBrowser.show_presentations)
 
+        @ui.page("/presentation/{presentation_path:path}")
+        async def presentation(presentation_path: str, client: Client):
+            return await self.page(
+                client, SlideBrowser.show_presentation, presentation_path
+            )
+
         @ui.page("/slides/{presentation_paths:path}")
         async def slides(presentation_paths: str, client: Client):
             return await self.page(client, SlideBrowser.show_slides, presentation_paths)
@@ -68,13 +76,15 @@ class SlideBrowserWebserver(InputWebserver):
         self.ppt_set = PPTSet(self.slidewalker)
         self.ppt_set.load(with_progress=True)
         # PDF path
-        self.pdf_path = os.path.abspath(self.args.pdf_path) if self.args.pdf_path else None
+        self.pdf_path = (
+            os.path.abspath(self.args.pdf_path) if self.args.pdf_path else None
+        )
         # Serve static PDF files if --pdf_path was given
         if self.pdf_path:
             if os.path.isdir(self.pdf_path):
                 app.add_static_files("/static/pdf", self.pdf_path)
             else:
-                self.pdf_path=None
+                self.pdf_path = None
 
 
 class SlideBrowser(InputWebSolution):
@@ -84,7 +94,7 @@ class SlideBrowser(InputWebSolution):
 
     def __init__(self, webserver: SlideBrowserWebserver, client: Client):
         super().__init__(webserver, client)
-        self.pdf_path=webserver.pdf_path
+        self.pdf_path = webserver.pdf_path
         pass
 
     def prepare_ui(self):
@@ -96,6 +106,7 @@ class SlideBrowser(InputWebSolution):
         """
         Show the given slide.
         """
+
         def show():
             try:
                 slide = self.ppt_set.get_slide(path, page, relative=True)
@@ -109,6 +120,27 @@ class SlideBrowser(InputWebSolution):
 
         await self.setup_content_div(show)
 
+    async def show_presentation(self, presentation_path: str):
+        """
+        Display slides with pdf preview for a single presentation path
+        """
+
+        async def render_task():
+            await self.presentation_viewer.load_and_render()
+
+        def show():
+            try:
+                ppt = self.ppt_set.get_ppt(presentation_path, relative=True)
+                if not ppt:
+                    ui.notify(f"{presentation_path} not available")
+                self.presentation_viewer = SinglePresentationView(
+                    solution=self, ppt_path=presentation_path
+                )
+            except Exception as ex:
+                self.handle_exception(ex)
+
+        await self.setup_content_div(show)
+        TaskRunner().run_async(render_task)
 
     async def show_slides(self, presentation_paths_str: str):
         """
@@ -118,8 +150,12 @@ class SlideBrowser(InputWebSolution):
             presentation_paths_str: Path string that may contain multiple paths separated by '+'
         """
         # Parse the path string into a list of paths
-        delim=","
-        presentation_paths = presentation_paths_str.split(delim) if delim in presentation_paths_str else [presentation_paths_str]
+        delim = ","
+        presentation_paths = (
+            presentation_paths_str.split(delim)
+            if delim in presentation_paths_str
+            else [presentation_paths_str]
+        )
 
         self.slides_viewer = None
         self.grid_row = None

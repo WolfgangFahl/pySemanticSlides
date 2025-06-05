@@ -104,7 +104,7 @@ class Slide(object):
             delim = ""
             for paragraph in shape.text_frame.paragraphs:
                 for run in paragraph.runs:
-                    if any('\ue000' <= c <= '\uf8ff' for c in run.text):
+                    if any("\ue000" <= c <= "\uf8ff" for c in run.text):
                         continue  # skip icon glyphs
                     line += f"{delim}{run.text}"
                     delim = runDelim
@@ -114,7 +114,6 @@ class Slide(object):
                 lines.append(line.strip())
 
         return lines
-
 
     def getText(self, yRange=None):
         """
@@ -173,7 +172,7 @@ class PPT(object):
             raise Exception("%s does not exist" % filepath)
         self.prs = None
         self.error = None
-        self.slides_loaded=False
+        self.slides_loaded = False
         self.slides = []
 
     def summary(self) -> str:
@@ -225,7 +224,12 @@ class PPT(object):
         """
         os.system(f"open {self.filepath}")  # MacOS – adjust for platform
 
-    def getSlides(self, excludeHiddenSlides: bool = False, runDelim: str = None, force: bool = False):
+    def getSlides(
+        self,
+        excludeHiddenSlides: bool = False,
+        runDelim: str = None,
+        force: bool = False,
+    ):
         """
         get my slides
 
@@ -258,11 +262,12 @@ class PPT(object):
                     self, slide, page=page, pdf_page=pdf_page, runDelim=runDelim
                 )
                 self.slides.append(pptSlide)
-        self.slides_loaded=True
+        self.slides_loaded = True
         return self.slides
 
     def save(self, fileName: str):
         self.prs.save(fileName)
+
 
 class PPTSet:
     """
@@ -339,7 +344,6 @@ class PPTSet:
         slides_by_page = self.get_slides(path, relative=relative)
         slide = slides_by_page.get(page)
         return slide
-
 
     def as_lod(self) -> List[dict]:
         """

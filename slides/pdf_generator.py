@@ -5,19 +5,22 @@ Created on 2025-05-18
 """
 
 import subprocess
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional
+
 import ngwidgets.persistent_log as log
 from ngwidgets.persistent_log import Log
 from ngwidgets.progress import Progressbar
 from ngwidgets.shell import Shell
-from dataclasses import dataclass, field
+
 
 @dataclass
 class FileSet:
     """
     Represents a set of files with a given extension
     """
+
     base_path: str
     ext: str
     paths: List[Path] = field(init=False)
@@ -42,6 +45,7 @@ class FileSet:
         for path in base_path.rglob(f"*.{ext}"):
             if not path.name.startswith("~$"):
                 yield path
+
 
 class PdfGenerator:
     """
@@ -72,11 +76,13 @@ class PdfGenerator:
         else:
             self.log.log("✅", "soffice", f"Found soffice at {result.stdout.strip()}")
 
-    def generate_pdfs(self,
-        pptx_set:FileSet,
+    def generate_pdfs(
+        self,
+        pptx_set: FileSet,
         pdf_path,
         with_stats: bool = False,
-        progress_bar: Optional[Progressbar] = None) -> Dict[Path, subprocess.CompletedProcess]:
+        progress_bar: Optional[Progressbar] = None,
+    ) -> Dict[Path, subprocess.CompletedProcess]:
         """
         Convert all .pptx files in pptx_set to PDFs using LibreOffice.
 

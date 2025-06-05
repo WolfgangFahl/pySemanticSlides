@@ -7,8 +7,12 @@ Created on 2023-01-27
 import json
 from pathlib import Path
 
-from slides.keyvalue_parser import Keydef, KeyValueParserConfig, KeyValueSplitParser,\
-    SimpleKeyValueParser
+from slides.keyvalue_parser import (
+    Keydef,
+    KeyValueParserConfig,
+    KeyValueSplitParser,
+    SimpleKeyValueParser,
+)
 from slides.slidewalker import SlideWalker
 from tests.basetest import Basetest
 
@@ -38,7 +42,7 @@ class TestCollectKeyValuesFromNotes(Basetest):
         return pres_list
 
     def get_configs(self):
-        debug=True
+        debug = True
         keydefs = [
             Keydef("Name", "name"),
             Keydef("Title", "title"),
@@ -46,9 +50,9 @@ class TestCollectKeyValuesFromNotes(Basetest):
             Keydef("Literature", "literatur", True),
         ]
         yaml_path = self.config_dir / "utf8dot_slides_keyvalues.yaml"
-        configs={
+        configs = {
             "default": KeyValueParserConfig(record_delim="\n", keydefs=keydefs),
-            "utf-8-dot":  KeyValueParserConfig.ofYaml(yaml_path)
+            "utf-8-dot": KeyValueParserConfig.ofYaml(yaml_path),
         }
         return configs
 
@@ -58,37 +62,37 @@ class TestCollectKeyValuesFromNotes(Basetest):
         """
         pres_list = self.getPresentations()
         debug = self.debug
-        #debug=True
-        for config_name,config in self.get_configs().items():
+        # debug=True
+        for config_name, config in self.get_configs().items():
             kvp = SimpleKeyValueParser(config=config)
-            #kvp=KeyValueSplitParser(config=config) # still problematic!
+            # kvp=KeyValueSplitParser(config=config) # still problematic!
             for _pres_file, pres_dict in pres_list.items():
                 slide_records = pres_dict["slides"]
                 for i, slide_record in enumerate(slide_records):
                     notes = slide_record["notes"]
                     notes_info = kvp.getKeyValues(notes)
-                    expected=None
-                    expected_i=1 if config_name=="default" else 2;
-                    if i==expected_i:
+                    expected = None
+                    expected_i = 1 if config_name == "default" else 2
+                    if i == expected_i:
                         if debug:
                             print(json.dumps(notes_info, indent=2))
-                        error_count=len(kvp.errors)
-                        if len(kvp.errors)>0:
-                            for ei,error in enumerate(kvp.errors):
+                        error_count = len(kvp.errors)
+                        if len(kvp.errors) > 0:
+                            for ei, error in enumerate(kvp.errors):
                                 print(f"error {ei}:{error}")
-                        self.assertEqual(0, error_count,config_name)
-                        if config_name=="default":
+                        self.assertEqual(0, error_count, config_name)
+                        if config_name == "default":
                             expected = {
                                 "name": "Why_semantify",
                                 "title": "Why semantify your slides?",
                                 "keywords": "Semantification, FAIR",
                                 "literatur": ["Furth2018", "Fair2016"],
                             }
-                        elif config_name=="utf-8-dot":
-                            expected={
-                              "lg": "LG42-42",
-                              "name": "Key-Value-Parser",
-                              "mainslide": "\u2714\ufe0f"
+                        elif config_name == "utf-8-dot":
+                            expected = {
+                                "lg": "LG42-42",
+                                "name": "Key-Value-Parser",
+                                "mainslide": "\u2714\ufe0f",
                             }
                             pass
                         self.assertEqual(expected, notes_info)

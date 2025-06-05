@@ -3,103 +3,33 @@ Created on 2025-05-16
 
 @author: wf
 """
+
 from collections import OrderedDict
-import os
 from typing import List
 
 from ngwidgets.input_webserver import InputWebSolution
 from ngwidgets.lod_grid import GridConfig, ListOfDictsGrid
 from ngwidgets.progress import NiceguiProgressbar
+from ngwidgets.task_runner import TaskRunner
 from ngwidgets.widgets import Link
 from nicegui import ui
-from slides.pdf_generator import PdfGenerator, FileSet
+
+from slides.page_navigator import PageNavigator
+from slides.pdf import PDF
+from slides.pdf_generator import FileSet, PdfGenerator
 from slides.slidewalker import PPT, Slide
-from ngwidgets.task_runner import TaskRunner
 
-class PageNavigator:
-    """
-    Simple page navigator with URL generation callback
-    """
-
-    def __init__(self, current_page: int, total_pages: int, url_for_page):
-        """
-        Initialize the page navigator
-
-        Args:
-            current_page: Current page number (1-based)
-            total_pages: Total number of pages
-            url_for_page: Callback function that returns URL for a given page number
-        """
-        self.current_page = current_page
-        self.total_pages = total_pages
-        self.url_for_page = url_for_page
-
-    def generate_markup(self) -> str:
-        """Generate HTML markup for page navigation"""
-        def get_link(page,symbol,tooltip)->str:
-            page_url=self.url_for_page(page)
-            link=Link.create(page_url,symbol)
-            if tooltip:
-                pass
-            return link
-
-        # provide a page nav
-        markup = f"""<div class="page-nav" style="display: flex; align-items: center; justify-content: center; gap: 15px; margin: 10px 0;">"""
-        markup += get_link(1, "⏮", f"First Page (1/{self.total_pages})")
-        markup += get_link(max(1, self.current_page - 10), "⏪", "Fast Backward (Jump -10 Pages)")
-        markup += get_link(max(1, self.current_page - 1), "◀", "Previous Page")
-        markup += f'<span>Page {self.current_page} of {self.total_pages}</span>'
-        markup += get_link(min(self.total_pages, self.current_page + 1), "▶", "Next Page")
-        markup += get_link(min(self.total_pages, self.current_page + 10), "⏩", "Fast Forward (Jump +10 Pages)")
-        markup += get_link(self.total_pages, "⏭", f"Last Page ({self.total_pages}/{self.total_pages})")
-        markup += "</div>"
-        return markup
-
-    def render(self):
-        """Render the page navigator with a single HTML call"""
-        markup=self.generate_markup()
-        ui.html(markup)
-class PDF:
-    """
-    Portable Document File handling
-    """
-    def __init__(self,solution,ppt):
-        self.solution=solution
-        self.ppt=ppt
-        self.pdf_name = self.ppt.basename.replace(".pptx", ".pdf")
-        if self.solution.pdf_path:
-            self.pdf_file = os.path.join(self.solution.pdf_path, self.pdf_name)
-            self.valid=os.path.exists(self.pdf_file)
-        else:
-            self.pdf_file=None
-            self.valid=False
-
-    def get_url(self,page:int=None):
-        url=f"/static/pdf/{self.pdf_name}" if self.valid else None
-        if url and page:
-            url=f"{url}#page={page}"
-        return url
-
-    def get_link(self,page:int=None):
-        pdf_url=self.get_url(page=page)
-        if pdf_url:
-            pdf_link = Link.create(pdf_url, "📄 PDF")
-        else:
-            pdf_link=""
-        return pdf_link
 
 class View:
     """
     Base class for views with common functions
     """
 
-    def __init__(
-        self,
-        solution: InputWebSolution):
+    def __init__(self, solution: InputWebSolution):
         self.solution = solution
         self.debug = self.solution.debug
 
-    def label_value(self,label: str, value, default="", compact:bool=False):
+    def label_value(self, label: str, value, default="", compact: bool = False):
         """
         Helper function to display a label-value pair
 
@@ -116,6 +46,7 @@ class View:
             with ui.row().classes("items-center gap-2"):
                 ui.label(f"{label}:").classes("font-bold")
                 ui.label(f"{value}")
+
 
 class GridView(View):
     """
@@ -159,7 +90,9 @@ class GridView(View):
             search_lower = self.search_text.strip().lower()
             matched_keys = []
             columns = (
-                self.search_cols or list(self.view_lod[0].keys()) if self.view_lod else []
+                self.search_cols or list(self.view_lod[0].keys())
+                if self.view_lod
+                else []
             )
             for row in self.lod:
                 for col in columns:
@@ -229,6 +162,7 @@ class SlidesViewer(GridView):
     """
     Shows slides of one or more PowerPoint presentations
     """
+
     def __init__(self, solution: InputWebSolution, ppts: List[PPT]):
         """
         Initialize the SlideViewer.
@@ -275,7 +209,7 @@ class SlidesViewer(GridView):
             record.move_to_end("name", last=False)
             record.move_to_end("#", last=False)
 
-    def render_master(self,grid_row):
+    def render_master(self, grid_row):
         # Master view (presentation details)
         with grid_row:
             with ui.card().classes("w-full mb-4") as self.master_card:
@@ -287,17 +221,20 @@ class SlidesViewer(GridView):
                 else:
                     # If multiple presentations, show a summary
                     with ui.row():
-                        for i,ppt in enumerate(self.ppts):
-                            PresentationView.get_ppt_header(ppt,i>0)
+                        for i, ppt in enumerate(self.ppts):
+                            PresentationView.get_ppt_header(ppt, i > 0)
+
     async def load_and_render(self, grid_row):
         self.render_master(grid_row)
         self.load_lod()
         await self.render_view_lod(grid_row)
 
+
 class PresentationView(View):
     """
     View for a single presentation
     """
+
     def __init__(self, solution: InputWebSolution, ppt_path: str):
         """
         Initialize the presentation view
@@ -307,10 +244,10 @@ class PresentationView(View):
             ppt_path: Path to the presentation file
         """
         super().__init__(solution)
+        self.ppt_path = ppt_path
         self.ppt = solution.ppt_set.get_ppt(ppt_path, relative=True)
         self.pdf = PDF(solution, self.ppt) if self.ppt else None
         self.task_runner = TaskRunner(timeout=40)
-
 
     def render(self):
         """
@@ -320,10 +257,22 @@ class PresentationView(View):
             ui.label(self.ppt.basename).classes("font-bold")
             ui.label(f"({len(self.ppt.getSlides())} slides)")
             # Action buttons
-            ui.button(icon="open_in_new", on_click=self.open_in_office, color="primary").props("flat dense")
+            ui.button(
+                icon="open_in_new", on_click=self.open_in_office, color="primary"
+            ).props("flat dense")
             if self.pdf and self.pdf.valid:
                 pdf_url = self.pdf.get_url()
-                ui.button(icon="picture_as_pdf", on_click=lambda url=pdf_url: ui.navigate.to(url), color="primary").props("flat dense")
+                ui.button(
+                    icon="picture_as_pdf",
+                    on_click=lambda url=pdf_url: ui.navigate.to(url),
+                    color="primary",
+                ).props("flat dense")
+                presentation_viewer_url = f"/presentation/{self.ppt_path}"
+                ui.button(
+                    icon="preview",
+                    on_click=lambda url=presentation_viewer_url: ui.navigate.to(url),
+                    color="primary",
+                ).props("flat dense")
             self.label_value("title", self.ppt.title, compact=True)
             self.label_value("created", self.ppt.created, compact=True)
             if self.ppt.author:
@@ -342,9 +291,9 @@ class PresentationView(View):
         ui.navigate.to(f"/slides/{self.ppt.relpath}")
 
     @classmethod
-    def get_ppt_header(cls,ppt,with_delim:bool=False):
+    def get_ppt_header(cls, ppt, with_delim: bool = False):
         pres_url = f"/slides/{ppt.relpath}"
-        name=ppt.basename.replace(".pptx","")
+        name = ppt.basename.replace(".pptx", "")
         pres_info = f"{name} ({len(ppt.getSlides())} slides)"
         if with_delim:
             ui.label("•").classes("text-gray-500")
@@ -355,6 +304,7 @@ class PresentationsViewer(GridView):
     """
     Viewer for available presentations
     """
+
     def __init__(self, solution: InputWebSolution):
         """
         Initialize the PresentationsViewer.
@@ -362,7 +312,7 @@ class PresentationsViewer(GridView):
         Args:
             solution: the UI solution context
         """
-        super().__init__(solution, "path", html_columns=[1,2,3,4,5])
+        super().__init__(solution, "path", html_columns=[1, 2, 3, 4, 5])
         self.ppt_set = solution.ppt_set
         self.slide_viewer = None
         self.task_runner = TaskRunner()
@@ -375,9 +325,17 @@ class PresentationsViewer(GridView):
             ui.label(self.ppt_set.slidewalker.rootFolder)
             ui.button("walk", on_click=self.on_walk)
             pdf_disabled = not self.solution.pdf_path
-            pdf_tooltip = "Generate PDFs" if not pdf_disabled else "PDF output path not configured"
+            pdf_tooltip = (
+                "Generate PDFs"
+                if not pdf_disabled
+                else "PDF output path not configured"
+            )
 
-            btn = ui.button("PDFs", icon="picture_as_pdf", on_click=self.on_generate_pdfs if not pdf_disabled else None)
+            btn = ui.button(
+                "PDFs",
+                icon="picture_as_pdf",
+                on_click=self.on_generate_pdfs if not pdf_disabled else None,
+            )
             if pdf_disabled:
                 btn.disable()
             btn.tooltip(pdf_tooltip)
@@ -404,7 +362,7 @@ class PresentationsViewer(GridView):
             ppt = self.ppt_set.get_ppt(path)
             url = f"/slides/{ppt.relpath}"
             record["path"] = Link.create(url, ppt.basename)
-            pdf=PDF(self.solution,ppt)
+            pdf = PDF(self.solution, ppt)
             record["pdf"] = pdf.get_link()
 
     async def load_and_show_presentations(self):
@@ -454,7 +412,7 @@ class PresentationsViewer(GridView):
                 pptx_set=pptx_set,
                 pdf_path=pdf_path,
                 with_stats=True,
-                progress_bar=self.progress_bar
+                progress_bar=self.progress_bar,
             )
             self.task_runner.run_async(self.load_and_show_presentations)
 
@@ -472,8 +430,8 @@ class PresentationsViewer(GridView):
             selected: selected rows from the presentation list
         """
         self.slide_grid_row.clear()
-        path_str=""
-        delim=""
+        path_str = ""
+        delim = ""
         for r in selected:
             ri = r.get("#")
             row = self.lod[ri]
@@ -481,15 +439,17 @@ class PresentationsViewer(GridView):
             if path:
                 ppt = self.ppt_set.get_ppt(path, relative=False)
                 if ppt:
-                    path_str+=f"{delim}{ppt.relpath}"
-                    delim=","
-        url=f"/slides/{path_str}"
+                    path_str += f"{delim}{ppt.relpath}"
+                    delim = ","
+        url = f"/slides/{path_str}"
         ui.navigate.to(url)
+
 
 class SlideDetailViewer:
     """
     Viewer for a single slide
     """
+
     def __init__(self, solution: InputWebSolution, slide: Slide):
         """
         Initialize the SlideDetailViewer.
@@ -508,7 +468,7 @@ class SlideDetailViewer:
         if self.pdf.valid:
             pdf_url = self.pdf.get_url(page=self.slide.pdf_page)
             # Use an iframe to embed the PDF with specific page
-            markup=f"""
+            markup = f"""
             <iframe
                 src="{pdf_url}"
                 class="w-full"
@@ -524,13 +484,13 @@ class SlideDetailViewer:
         """
         presentation_view = PresentationView(self.solution, self.slide.ppt.relpath)
         presentation_view.render()
-        #PresentationView.get_ppt_header(self.slide.ppt)
+        # PresentationView.get_ppt_header(self.slide.ppt)
         # Add page navigation
         relpath = self.slide.ppt.relpath
         navigator = PageNavigator(
             current_page=self.slide.page,
             total_pages=self.total_slides,
-            url_for_page=lambda page, path=relpath: f"/slide/{path}/{page}"
+            url_for_page=lambda page, path=relpath: f"/slide/{path}/{page}",
         )
         navigator.render()
         with ui.row():

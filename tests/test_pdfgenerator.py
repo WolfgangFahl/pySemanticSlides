@@ -6,8 +6,7 @@ Test PdfGenerator functionality.
 
 from pathlib import Path
 
-from slides.pdf_generator import PdfGenerator, FileSet
-
+from slides.pdf_generator import FileSet, PdfGenerator
 from tests.basetest import Basetest
 
 
@@ -24,9 +23,9 @@ class TestPdfGenerator(Basetest):
         self.debug = debug
         base_path = Path(__file__).parent.parent
         self.example_dir = base_path / "examples" / "semanticslides"
-        self.output_dir =  Path("/tmp/pdfgenerator")
+        self.output_dir = Path("/tmp/pdfgenerator")
         self.output_dir.mkdir(parents=True, exist_ok=True)
-        self.pptx_set=FileSet(self.example_dir,ext="pptx")
+        self.pptx_set = FileSet(self.example_dir, ext="pptx")
 
     def test_check_soffice(self):
         """
@@ -45,4 +44,3 @@ class TestPdfGenerator(Basetest):
         for input_path, _proc in procs.items():
             out_pdf = self.output_dir / f"{input_path.stem}.pdf"
             self.assertTrue(out_pdf.exists())
-

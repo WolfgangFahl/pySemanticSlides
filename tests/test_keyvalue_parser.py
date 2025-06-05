@@ -15,7 +15,6 @@ from slides.keyvalue_parser import (
     SimpleKeyValueParser,
     Split,
 )
-
 from tests.basetest import Basetest
 
 
@@ -89,10 +88,7 @@ class TestKeyValueParser(Basetest):
             for s in [":", "→", "="]:
                 for v in [",", ";"]:
                     config = KeyValueParserConfig(
-                        record_delim=r,
-                        key_value_delim=s,
-                        value_delim=v,
-                        debug=debug
+                        record_delim=r, key_value_delim=s, value_delim=v, debug=debug
                     )
                     yield config
 
@@ -185,7 +181,7 @@ class TestKeyValueParser(Basetest):
                     kvp_name = kvp.__class__.__name__
                     if text and (kvp.config.quote in text) and ("Simple" in kvp_name):
                         continue
-                    kvp.config.keydefs=keydefs
+                    kvp.config.keydefs = keydefs
                     kvp.config.__post_init__()
                     kv = kvp.getKeyValues(text)
                     if debug:
@@ -212,9 +208,8 @@ class TestKeyValueParser(Basetest):
         test loading config from YAML file
         """
         debug = self.debug
-        #debug=True
+        # debug=True
         yaml_file = self.example_dir / "dbis_slides_keyvalues.yaml"
         config = KeyValueParserConfig.ofYaml(str(yaml_file))
         if debug:
-            print(json.dumps(config.keydefs_by_keyword,indent=2,default=str))
-
+            print(json.dumps(config.keydefs_by_keyword, indent=2, default=str))

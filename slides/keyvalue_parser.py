@@ -4,13 +4,12 @@ Created on 2023-02-14
 @author: wf
 """
 
-from dataclasses import dataclass, field
 import traceback
 import typing
-
-from lodstorage.yamlable import lod_storable
+from dataclasses import dataclass, field
 
 import pyparsing as pp
+from lodstorage.yamlable import lod_storable
 
 
 @dataclass
@@ -22,6 +21,7 @@ class Keydef:
     keyword: str
     key: str
     has_list: bool = False
+
 
 @lod_storable
 class KeyValueParserConfig:
@@ -44,7 +44,6 @@ class KeyValueParserConfig:
         self.keydefs_by_keyword = {}
         for keydef in self.keydefs:
             self.keydefs_by_keyword[keydef.keyword] = keydef
-
 
     @classmethod
     def ofYaml(cls, yaml_path: str) -> "KeyValueParserConfig":
@@ -252,7 +251,6 @@ class KeyValueParser(BaseKeyValueParser):
         if config.keydefs:
             self._init_grammar_from_config()
         pass
-
 
     def init_grammar_from_config(self):
         """
