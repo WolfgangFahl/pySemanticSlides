@@ -5,22 +5,23 @@ Created on 2022-04-07
 """
 
 import argparse
+from collections import OrderedDict
+from contextlib import redirect_stdout
 import csv
+from io import StringIO
 import io
 import json
 import os
 import sys
 import traceback
-import webbrowser
-from collections import OrderedDict
-from contextlib import redirect_stdout
-from io import StringIO
 from typing import List
+import webbrowser
 
 from pptx import Presentation
+from slides.version import Version
 from tqdm import tqdm
 
-from slides.version import Version
+from slides.slide_id import SlideId
 
 
 # https://stackoverflow.com/a/70631361/1497139
@@ -280,6 +281,7 @@ class PPTSet:
         self.verbose = verbose
         self.ppts_by_path: dict[str, PPT] = {}
         self.ppts_by_relpath: dict[str, PPT] = {}
+        self.slide_id=SlideId()
 
     def load(self, with_progress: bool = False):
         """
@@ -327,6 +329,11 @@ class PPTSet:
         if ppt:
             for slide in ppt.getSlides():
                 slides_by_page[slide.page] = slide
+                self.slide_id.register(ppt.basename, slide.page, slide.title)
+            for page,slide in slides_by_page.items():
+                # make sure all slides have names
+                if not slide.name:
+                    slide.name=self.slide_id.get_id(ppt.basename, page)
         return slides_by_page
 
     def get_slide(self, path: str, page: int, relative: bool = False) -> Slide:

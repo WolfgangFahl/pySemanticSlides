@@ -41,7 +41,7 @@ dependencies = [
 	# https://pypi.org/project/tqdm/
   	"tqdm>=4.66.5",
   	# https://pypi.org/project/python-slugify/
-  	"python-slugify>8.0.4"
+  	"python-slugify>=8.0.4"
 
 ]
 
