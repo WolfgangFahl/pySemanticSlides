@@ -332,6 +332,8 @@ class PPTSet:
         slides_by_page: dict[int, Slide] = {}
         if ppt:
             for slide in ppt.getSlides():
+                if self.kvp:
+                    slide.notes_info = self.kvp.getKeyValues(slide.getNotes())
                 slides_by_page[slide.page] = slide
                 self.slide_id.register(ppt.basename, slide.page, slide.title)
             for page,slide in slides_by_page.items():
