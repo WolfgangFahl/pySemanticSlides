@@ -32,7 +32,7 @@ class TestCollectKeyValuesFromNotes(Basetest):
         self.debug = debug
         base_path = Path(__file__).parent.parent
         self.slidedir = f"{base_path}/examples/semanticslides"
-        self.config_dir = base_path / "examples" / "KeyValueParser"
+        self.config_dir = base_path / "slides" / "resources" / "KeyValueParser"
         pass
 
     def getPresentations(self):

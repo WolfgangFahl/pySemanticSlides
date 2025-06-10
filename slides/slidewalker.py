@@ -386,10 +386,10 @@ class SlideWalker(object):
         self.rootFolder = rootFolder
         self.debug = debug
         self.kvp=None
-        self.base_path = Path(__file__).parent.parent
+        self.base_path = Path(__file__).parent
 
     def set_key_value_parser_byname(self,kvp_name:str):
-        yaml_file = self.base_path / "examples" / "KeyValueParser"/ f"{kvp_name}.yaml"
+        yaml_file = self.base_path / "resources" / "KeyValueParser"/ f"{kvp_name}.yaml"
         self.kvp_config = KeyValueParserConfig.ofYaml(str(yaml_file))
         self.kvp = SimpleKeyValueParser(config=self.kvp_config)
 
@@ -609,6 +609,7 @@ def main(argv=None):
             webbrowser.open(Version.doc_url)
         else:
             sw = SlideWalker(args.rootPath, args.debug)
+            sw.set_key_value_parser_byname(args.kvp)
             sw.dumpInfo(
                 args.format,
                 excludeHiddenSlides=not args.includeHidden,

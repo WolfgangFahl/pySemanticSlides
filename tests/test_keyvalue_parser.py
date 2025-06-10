@@ -26,7 +26,7 @@ class TestKeyValueParser(Basetest):
     def setUp(self, debug=False, profile=True):
         Basetest.setUp(self, debug=debug, profile=profile)
         base_path = Path(__file__).parent.parent
-        self.example_dir = base_path / "examples" / "KeyValueParser"
+        self.example_dir = base_path / "slides" / "resources" / "KeyValueParser"
 
     def testQuotedStringSplit(self):
         """
