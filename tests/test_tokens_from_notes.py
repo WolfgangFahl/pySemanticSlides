@@ -42,14 +42,14 @@ class TestCollectKeyValuesFromNotes(Basetest):
         return pres_list
 
     def get_configs(self):
-        debug = True
+        #debug = True
         keydefs = [
             Keydef("Name", "name"),
             Keydef("Title", "title"),
             Keydef("Keywords", "keywords", False),
             Keydef("Literature", "literatur", True),
         ]
-        yaml_path = self.config_dir / "utf8dot_slides_keyvalues.yaml"
+        yaml_path = self.config_dir / "LG-Utf8-dots.yaml"
         configs = {
             "default": KeyValueParserConfig(record_delim="\n", keydefs=keydefs),
             "utf-8-dot": KeyValueParserConfig.ofYaml(yaml_path),

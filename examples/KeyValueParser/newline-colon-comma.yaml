@@ -1,11 +1,10 @@
 # Key Value Parser configuration for pySemantic Slides
 # https://github.com/WolfgangFahl/pySemanticSlides
 # WF 2025-06-02
-# this is the definition that is being used for the some BITPlan slides
-# using an utf-8 dot as a delimiter
-# example: lg: LG42-42 • name: Slide for Learning Goal 42 • mainslide: ✔️
+# this is the definition that has been used for the slides
+# of the RWTH Aachen DBIS chair for the Database and Information Systems lecture
 key_value_delim: ":"
-record_delim: "•"
+record_delim: "\n"
 value_delim: ","
 quote: "'"
 strip: true
@@ -13,14 +12,11 @@ ignore_errors: true
 defined_keys_only: false
 debug: false
 keydefs:
-- keyword: "Learning Goal"
-  key: "lg"
-  has_list: false
 - keyword: "Name"
   key: "name"
   has_list: false
-- keyword: "Main Slide"
-  key: "mainslide"
+- keyword: "Title"
+  key: "title"
   has_list: false
 - keyword: "Keywords"
   key: "keywords"

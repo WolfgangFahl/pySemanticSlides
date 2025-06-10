@@ -12,16 +12,18 @@ from io import StringIO
 import io
 import json
 import os
+from pathlib import Path
 import sys
 import traceback
-from typing import List
+from typing import List, Dict
 import webbrowser
 
 from pptx import Presentation
+from slides.keyvalue_parser import KeyValueParser, KeyValueParserConfig, \
+    SimpleKeyValueParser
+from slides.slide_id import SlideId
 from slides.version import Version
 from tqdm import tqdm
-
-from slides.slide_id import SlideId
 
 
 # https://stackoverflow.com/a/70631361/1497139
@@ -65,7 +67,8 @@ class Slide(object):
             self.title = slide.shapes.title.text
         if self.title is None:
             self.title = self.name
-        pass
+        # optional key values
+        self.notes_info={}
 
     def asDict(self):
         summary = {
@@ -75,6 +78,7 @@ class Slide(object):
             "name": self.name,
             "text": self.getText(),
             "notes": self.getNotes(),
+            "notes_info": self.notes_info
         }
         return summary
 
@@ -381,6 +385,13 @@ class SlideWalker(object):
         """
         self.rootFolder = rootFolder
         self.debug = debug
+        self.kvp=None
+        self.base_path = Path(__file__).parent.parent
+
+    def set_key_value_parser_byname(self,kvp_name:str):
+        yaml_file = self.base_path / "examples" / "KeyValueParser"/ f"{kvp_name}.yaml"
+        self.kvp_config = KeyValueParserConfig.ofYaml(str(yaml_file))
+        self.kvp = SimpleKeyValueParser(config=self.kvp_config)
 
     def asCsv(self, listOfDicts: list, fieldNames: list = None) -> str:
         """convert the given list of dicts to CSV
@@ -445,6 +456,8 @@ class SlideWalker(object):
         """
         ppt.getSlides(excludeHiddenSlides=excludeHiddenSlides, runDelim=runDelim)
         for slide in ppt.slides:
+            if self.kvp:
+                slide.notes_info = self.kvp.getKeyValues(slide.getNotes())
             if verbose and slideDetails:
                 print(slide.summary())
             yield slide
@@ -457,11 +470,11 @@ class SlideWalker(object):
         slideDetails: bool = False,
     ):
         """
-        dump information about the lecture in the given format
+        dump information about the presentation in the given format
 
         Args:
             outputFormat(str): csv, json or txt
-            excludeHiddenSlides(bool): If True hidden lecture will be excluded and also ignored in the page counting
+            excludeHiddenSlides(bool): If True hidden slides will be excluded and also ignored in the page counting
             runDelim(str): the delimiter to use for powerpoint slide text
         """
         info = {}
@@ -578,6 +591,12 @@ def main(argv=None):
             dest="runDelim",
             help="text run delimiter (default: %(default)s) suggested: ＿↵•",
             default=Slide.defaultRunDelim,
+        )
+        parser.add_argument(
+            "--kvp",
+            "--key-value-parser",
+            default="newline-colon-comma",
+            help="the parser to be used for extracting meta data from the notes (default: %(default)s)"
         )
         parser.add_argument("--rootPath", default=".")
         parser.add_argument(

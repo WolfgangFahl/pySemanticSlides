@@ -209,7 +209,7 @@ class TestKeyValueParser(Basetest):
         """
         debug = self.debug
         # debug=True
-        yaml_file = self.example_dir / "dbis_slides_keyvalues.yaml"
+        yaml_file = self.example_dir / "newline-colon-comma.yaml"
         config = KeyValueParserConfig.ofYaml(str(yaml_file))
         if debug:
             print(json.dumps(config.keydefs_by_keyword, indent=2, default=str))

@@ -3,7 +3,7 @@ Created on 2023-02-14
 
 @author: wf
 """
-
+from pathlib import Path
 import traceback
 import typing
 from dataclasses import dataclass, field
@@ -28,7 +28,6 @@ class KeyValueParserConfig:
     """
     a configuration for a key/value Parser
     """
-
     key_value_delim: str = ":"
     record_delim: str = "•"
     value_delim: str = ","
@@ -50,7 +49,6 @@ class KeyValueParserConfig:
         """Load keyvalue parser configuration from YAML file."""
         kvp_config = cls.load_from_yaml_file(yaml_path)
         return kvp_config
-
 
 class Split:
     """
