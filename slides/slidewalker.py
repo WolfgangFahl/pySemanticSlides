@@ -286,6 +286,7 @@ class PPTSet:
         self.ppts_by_path: dict[str, PPT] = {}
         self.ppts_by_relpath: dict[str, PPT] = {}
         self.slide_id=SlideId()
+        self.kvp=None
 
     def load(self, with_progress: bool = False):
         """
