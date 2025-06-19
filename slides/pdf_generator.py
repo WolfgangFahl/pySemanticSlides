@@ -9,10 +9,10 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Optional
 
-import ngwidgets.persistent_log as log
-from ngwidgets.persistent_log import Log
+import basemkit.persistent_log as log
+from basemkit.persistent_log import Log
 from ngwidgets.progress import Progressbar
-from ngwidgets.shell import Shell
+from basemkit.shell import Shell
 
 
 @dataclass
