@@ -15,6 +15,10 @@ maintainers = [
 readme = "README.md"
 license= "Apache-2.0"
 dependencies = [
+	# https://pypi.org/project/pybasemkit/
+	# https://github.com/WolfgangFahl/pybasemkit
+	# Python base module kit: YAML/JSON I/O, structured logging, CLI tooling, shell execution, and remote pydevd debug support.
+	"pybasemkit>=0.0.3",
 	# https://pypi.org/project/python-pptx/
 	'python-pptx',
 	# https://pypi.org/project/pyGenericSpreadSheet/

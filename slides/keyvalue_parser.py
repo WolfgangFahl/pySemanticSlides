@@ -9,7 +9,7 @@ import typing
 from dataclasses import dataclass, field
 
 import pyparsing as pp
-from lodstorage.yamlable import lod_storable
+from basemkit.yamlable import lod_storable
 
 
 @dataclass
