@@ -4,7 +4,6 @@ Created on 2025-06-05
 @author: wf
 """
 from nicegui import ui
-from nicegui_pdf.pdf_viewer import PdfViewer
 from slides.slide_viewer import PresentationView
 from slides.page_navigator import NicePageNavigator
 
@@ -28,6 +27,12 @@ class SinglePresentationView(PresentationView):
         self.page_number_input = None
 
     def show_pdf_viewer(self,pdf_url):
+        """
+        show pdf viewer
+
+        """
+        # work around https://github.com/peerdavid/nicegui-pdf/issues/3
+        from nicegui_pdf.pdf_viewer import PdfViewer
         self.pdf_viewer = (
                 PdfViewer(pdf_url)
                 .classes("w-full")
