@@ -148,13 +148,12 @@ class SlideNamesCmd(BaseCmd):
         self.format_str = args.format
         sn = SlideNames(self.deck)
         if args.set:
-            if not args.out:
-                self.parser.error("--out is required when using --set")
+            out_path = args.out or self.deck
             for page_str, new_name in args.set.items():
                 page = int(page_str)
                 old, new = sn.set_name(page, new_name)
                 print(f"page {page}: [{old}] -> [{new}]")
-            sn.save(args.out)
+            sn.save(out_path)
             return True
         for v in sn.iter_vars():
             print(self.format_str.format(**v))
