@@ -18,16 +18,16 @@ dependencies = [
 	# https://pypi.org/project/pybasemkit/
 	# https://github.com/WolfgangFahl/pybasemkit
 	# Python base module kit: YAML/JSON I/O, structured logging, CLI tooling, shell execution, and remote pydevd debug support.
-	"pybasemkit>=0.0.3",
+	"pybasemkit>=0.1.1",
 	# https://pypi.org/project/python-pptx/
 	'python-pptx',
 	# https://pypi.org/project/pyGenericSpreadSheet/
 	# 'pyGenericSpreadSheet',
 	# 'nicegui-pdf>=0.0.5',
 	# https://github.com/WolfgangFahl/nicegui_widgets
-	'ngwidgets>=0.25.0',
+	'ngwidgets>=0.29.4',
 	# pyLoDStorage
-	'pyLoDStorage>=0.15.0',
+	'pyLoDStorage>=0.17.5',
 	# https://github.com/konradhalas/dacite
 	'dacite>=1.7.0',
 	# https://github.com/goldsmith/Wikipedia
@@ -89,3 +89,4 @@ only-include = ["slides"]
 slidewalker = "slides.slidewalker:main"
 semslides = "slides.semslides:main"
 slidebrowser = "slides.slide_browser_cmd:main"
+slidenames = "slides.slide_names:main"
