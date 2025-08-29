@@ -11,13 +11,13 @@ Provides a small CLI that iterates slides of a .pptx and prints a user-specified
 format with variables {page}, {title}, {name}. Built on BaseCmd.
 """
 
+from argparse import ArgumentParser
 from pathlib import Path
 from typing import Dict, Generator, List, Optional
 
-from argparse import ArgumentParser
-from pptx import Presentation
-
+from basemkit.argparse_action import StoreDictKeyPair
 from basemkit.base_cmd import BaseCmd
+from pptx import Presentation
 from slides.version import Version
 
 
@@ -40,6 +40,35 @@ class SlideNames:
             path (Path): Path to a .pptx file.
         """
         self.prs = Presentation(str(path))
+
+    def set_name(self, page: int, new_name: str):
+        """
+        Set the internal slide name for the given 1-based page.
+
+        Args:
+            page (int): 1-based slide index
+            new_name (str): New internal name
+
+        Returns:
+            tuple: (old_name, new_name)
+        """
+        if page < 1 or page > len(self.prs.slides):
+            raise IndexError(f"page {page} out of range (1..{len(self.prs.slides)})")
+        slide = self.prs.slides[page - 1]
+        cSld = slide._element.cSld
+        old = cSld.get("name")
+        cSld.set("name", new_name)
+        return old, new_name
+
+    def save(self, out: Path):
+        """
+        Save the presentation to the given path.
+
+        Args:
+            out (Path): Target .pptx file
+        """
+        self.prs.save(str(out))
+
 
     def iter_vars(self) -> Generator[Dict[str, object], None, None]:
         """
@@ -90,6 +119,17 @@ class SlideNamesCmd(BaseCmd):
             default=self.format_str,
             help="Format string using {page}, {title}, {name}",
         )
+        parser.add_argument(
+            "--set",
+            action=StoreDictKeyPair,
+            metavar="PAGE=NAME[,PAGE=NAME...]",
+            help="Set slide names via PAGE=NAME pairs, comma separated",
+        )
+        parser.add_argument(
+            "--out",
+            type=Path,
+            help="Output .pptx path when using --set (defaults to in-place overwrite)",
+        )
         return parser
 
     def handle_args(self, args) -> bool:
@@ -107,6 +147,15 @@ class SlideNamesCmd(BaseCmd):
         self.deck = args.deck
         self.format_str = args.format
         sn = SlideNames(self.deck)
+        if args.set:
+            if not args.out:
+                self.parser.error("--out is required when using --set")
+            for page_str, new_name in args.set.items():
+                page = int(page_str)
+                old, new = sn.set_name(page, new_name)
+                print(f"page {page}: [{old}] -> [{new}]")
+            sn.save(args.out)
+            return True
         for v in sn.iter_vars():
             print(self.format_str.format(**v))
         return True
