@@ -13,6 +13,7 @@ format with variables {page}, {title}, {name}. Built on BaseCmd.
 
 from argparse import ArgumentParser
 from pathlib import Path
+import re
 from typing import Dict, Generator, List, Optional
 
 from basemkit.argparse_action import StoreDictKeyPair
@@ -82,6 +83,10 @@ class SlideNames:
         """
         for idx, slide in enumerate(self.prs.slides, start=1):
             title = slide.shapes.title.text if slide.shapes.title else ""
+            # sanitize title
+            title= ''.join(title.splitlines())
+            title = re.sub(r'\s+', ' ', title)
+            title=title.strip()
             name = slide._element.cSld.get("name")
             name = name or "❓"
             yield {"page": idx, "title": title, "name": name}
