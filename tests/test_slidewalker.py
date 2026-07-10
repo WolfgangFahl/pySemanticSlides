@@ -1,4 +1,6 @@
 import json
+import shutil
+import tempfile
 from pathlib import Path
 
 from slides.slidewalker import SlideWalker
@@ -43,3 +45,16 @@ class TestSlideWalker(Basetest):
                 for attr in ["page", "pdf_page", "title", "name", "text", "notes","notes_info"]:
                     self.assertTrue(attr in slide)
             pass
+
+    def test_pptm_is_walked(self):
+        """
+        macro-enabled .pptm decks must be discovered, not only .pptx
+        see https://github.com/WolfgangFahl/pySemanticSlides/issues/24
+        """
+        source = Path(self.slidedir) / "SemanticSlides.pptx"
+        with tempfile.TemporaryDirectory() as tmp:
+            pptm = Path(tmp) / "SemanticSlides.pptm"
+            shutil.copy(source, pptm)
+            slidewalker = SlideWalker(tmp)
+            names = [ppt.basename for ppt in slidewalker.yieldPowerPointFiles(verbose=self.debug)]
+            self.assertIn("SemanticSlides.pptm", names)

@@ -428,7 +428,7 @@ class SlideWalker(object):
         Args:
             verbose(bool): if True show information about the processing
         """
-        pptxFiles = self.findFiles(self.rootFolder, ".pptx")
+        pptxFiles = self.findFiles(self.rootFolder, (".pptx", ".pptm"))
         if verbose:
             print(f"found {len(pptxFiles)} powerpoint files")
         for pptxFile in pptxFiles:
@@ -536,13 +536,14 @@ class SlideWalker(object):
         stdout = f.getvalue()
         return stdout
 
-    def findFiles(self, path: str, ext: str) -> list:
+    def findFiles(self, path: str, ext) -> list:
         """
-        find Files with the given extension in the given path
+        find Files with the given extension(s) in the given path
 
         Args:
             path(str): the path to start with
-            ext(str): the extension to search for
+            ext(str|tuple): the extension or tuple of extensions to search for
+                (e.g. ".pptx" or (".pptx", ".pptm"))
 
         Returns:
             list: a list of files found

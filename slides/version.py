@@ -19,7 +19,7 @@ class Version:
     description = "generate Semantic Mediawiki for a set of powerpoint presentations with semantic annotations"
     version = slides.__version__
     date = "2023-02-14"
-    updated = "2025-08-29"
+    updated = "2026-07-10"
     authors = "Wolfgang Fahl"
     doc_url = "https://wiki.bitplan.com/index.php/PySemanticSlides"
     chat_url = "https://github.com/WolfgangFahl/pySemanticSlides/discussions"
