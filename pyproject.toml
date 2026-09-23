@@ -39,7 +39,7 @@ dependencies = [
 	# https://pypi.org/project/isbnlib/
 	'isbnlib',
 	# https://pypi.org/project/bibtexparser/
-	'bibtexparser',
+	'bibtexparser<2',
 	# https://github.com/phfaist/pylatexenc/
 	'pylatexenc',
 	# https://pypi.org/project/tqdm/
